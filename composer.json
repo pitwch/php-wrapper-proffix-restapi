@@ -1,0 +1,22 @@
+{
+    "name": "pitw/rest-api-wrapper-proffix-php",
+    "description": "Small PHP Wrapper for PROFFIX REST API",
+    "homepage": "https://www.pitw.ch",
+    "license": "MIT",
+    "keywords": ["rest", "curl", "proffix", "restful", "api", "proffix rest api","php","wrapper"],
+    "require": {
+        "nategood/httpful": "0.2.*",
+        "monolog/monolog": "~1.13"
+    },
+    "authors": [
+        {
+            "name": "Simon Pedrett",
+            "email": "s.pedrett@pitw.ch"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+            "RestAPIWrapperProffix": "src/"
+        }
+    }
+}

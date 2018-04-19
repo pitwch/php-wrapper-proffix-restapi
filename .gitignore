@@ -1,0 +1,11 @@
+/vendor/
+/*.tgz
+/dist/
+/vendor/
+.buildpath
+.project
+.settings
+*.sublime-*
+.phpintel
+src/config.php
+index.php
