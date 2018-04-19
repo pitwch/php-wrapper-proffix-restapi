@@ -28,8 +28,11 @@ class RestAPIWrapperProffix
      */
     public function __construct($api_user, $api_password, $api_database, $api_url, $api_modules, $api_key = '', $logpath = '', $log = true)
     {
+        $configerror = [];
+
         if (empty(self::$config)) {
             $logpath = empty($logpath) ? __DIR__ . '/../../log/logs.log' : $logpath;
+
             self::$config = array(
                 'api_user' => $api_user,
                 'api_password' => $api_password,
@@ -63,16 +66,16 @@ class RestAPIWrapperProffix
      * @return mixed
      * @throws HttpException
      */
-    public function Get($endpoint)
+    public function Get($endpoint,$filter = '')
     {
 
         $endpoint = self::$config['api_url'] . $endpoint;
         $user = self::$config['api_user'];
-
+        $filterquery = urldecode($filter);
 
         $pxsessionid = $this->login();
 
-        $response = PHPHttpful::get($endpoint)
+        $response = PHPHttpful::get($endpoint.$filterquery)
             ->addHeader('PxSessionId', $pxsessionid)
             ->expectsJson()
             ->send();
@@ -89,7 +92,7 @@ class RestAPIWrapperProffix
                     "Status" => $response->code
                 )]);
             }
-            return response;
+            return $response;
         } else
             $this->logout($pxsessionid);
 
@@ -207,7 +210,7 @@ class RestAPIWrapperProffix
      * @throws HttpException
      * @throws \Httpful\Exception\ConnectionErrorException
      */
-    public function Create($endpoint)
+    public function Create($endpoint,$post)
     {
 
         $endpoint = self::$config['api_url'] . $endpoint;
@@ -219,6 +222,7 @@ class RestAPIWrapperProffix
         $response = PHPHttpful::post($endpoint)
             ->addHeader('PxSessionId', $pxsessionid)
             ->sendsJson()
+            ->body($post)
             ->send();
 
 
@@ -359,5 +363,61 @@ class RestAPIWrapperProffix
             echo $missing;
     }
 
+    /**
+     * Get available Databases from PROFFIX REST-API
+     * @param string $key
+     * @return mixed
+     */
+    public function GetDatabases($key = '')
+    {
+        $missing = 'API-Key missing';
+
+
+        if (empty($key)) {
+            $apikey = self::$config['api_key'];
+
+        } else
+            $apikey = $key;
+
+
+        if (!empty($apikey)) {
+            if (self::$config['api_log']) {
+                self::$logger->error('Info Request failed', ['context' => array(
+                    'Endpoint' => 'PRO/Datenbank',
+                    'Message' => $missing
+                )]);
+            }
+
+            $endpoint = self::$config['api_url'] . "PRO/Datenbank?Key=" . $apikey;
+
+
+            $response = PHPHttpful::get($endpoint)
+                ->expectsJson()
+                ->send();
+
+
+            if ($response->code != 200) {
+                if (self::$config['api_log']) {
+                    self::$logger->error('Info Request failed: ', ['context' => array(
+                        'Endpoint' => $endpoint,
+                        'Message' => $response->body,
+                        "Status" => $response->code
+                    )]);
+                }
+                echo($response);
+            } else
+                if (self::$config['api_log']) {
+                    self::$logger->info('Info - Request successful: ', ['context' => array(
+                        'Endpoint' => $endpoint,
+                        'Message' => $response->body,
+                        "Status" => $response->code
+                    )]);
+                }
+
+            return $response->body;
+
+        } else
+            echo $missing;
+    }
 
 }
