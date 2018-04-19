@@ -6,7 +6,7 @@
 Der Wrapper kann entweder direkt heruntergeladen, geklont oder via [Composer](https://getcomposer.org) installiert werden.
 
 ```php
-composer require pitw/php-wrapper-proffix-restapi
+composer require pitwch/php-wrapper-proffix-restapi
 ```
 
 #### Features
