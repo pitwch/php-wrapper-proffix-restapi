@@ -260,7 +260,7 @@ class RestAPIWrapperProffix
      * @throws HttpException
      * @throws \Httpful\Exception\ConnectionErrorException
      */
-    public function Update($endpoint)
+    public function Update($endpoint,$post)
     {
 
         $endpoint = self::$config['api_url'] . $endpoint;
@@ -272,6 +272,7 @@ class RestAPIWrapperProffix
         $response = PHPHttpful::put($endpoint)
             ->addHeader('PxSessionId', $pxsessionid)
             ->sendsJson()
+            ->body($post)
             ->send();
 
 
