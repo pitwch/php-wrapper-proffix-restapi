@@ -12,3 +12,17 @@ matrix:
   
 script:
   - phpunit -c ./tests/phpunit.xml
+
+before_deploy:
+  - composer buildphar
+  
+deploy:
+  provider: releases
+  api_key: $GITHUB_API_KEY
+  file:
+    - build/PhpWrapperProffix.phar
+    - build/PhpWrapperProffix.phar.asc
+  skip_cleanup: true
+  on:
+    tags: true
+    php: 7.0
