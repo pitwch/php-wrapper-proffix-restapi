@@ -51,11 +51,14 @@ class RestAPIWrapperProffix
             self::$logger->pushHandler(new StreamHandler(self::$config['log_path']));
         }
     }
-
+//TODO: Better Error Handling + Response
     public function pxErrorHandler($response)
     {
         $error = json_decode($response);
 
+        foreach ($response->Message as $msg) {
+            json_decode($msg);
+        }
         return $error->Message;
     }
 
@@ -237,7 +240,6 @@ class RestAPIWrapperProffix
                     "Status" => $response->code
                 )]);
             }
-            echo $response;
         } else
             $this->logout($pxsessionid);
         if (self::$config['api_log']) {
@@ -249,7 +251,7 @@ class RestAPIWrapperProffix
                 "Status" => $response->code
             )]);
         }
-        return $response->body;
+        return $response->body->Message;
 
     }
 
@@ -287,7 +289,6 @@ class RestAPIWrapperProffix
                     "Status" => $response->code
                 )]);
             }
-            echo $response;
         } else
             $this->logout($pxsessionid);
         if (self::$config['api_log']) {
@@ -300,7 +301,7 @@ class RestAPIWrapperProffix
             )]);
         }
 
-        return $response->body;
+        return $response->body->Message;
 
     }
 
