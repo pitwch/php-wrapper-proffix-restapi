@@ -26,24 +26,24 @@ class RestAPIWrapperProffix
     /**
      * Constructor for Wrapper.
      */
-    public function __construct($api_user, $api_password, $api_database, $api_url, $api_modules, $api_key = '', $logpath = '', $log = true)
+    //public function __construct($api_user, $api_password, $api_database, $api_url, $api_modules, $api_key = '', $logpath = '', $log = true)
+    public function __construct($configs)
     {
-        $configerror = [];
 
-        if (empty(self::$config)) {
-            $logpath = empty($logpath) ? __DIR__ . '/../../log/logs.log' : $logpath;
+        $configs['log_path'] = empty($configs['log_path']) ? __DIR__ . '/../../log/logs.log' : $configs['log_path'];
+        $configs['enable_log'] = empty($configs['enable_log']) ? true : $configs['enable_log'];
+        $configs['api_key'] = empty($configs['api_key']) ? '' : $configs['api_key'];
 
-            self::$config = array(
-                'api_user' => $api_user,
-                'api_password' => $api_password,
-                'api_database' => $api_database,
-                'api_modules' => $api_modules,
-                'log_path' => $logpath,
-                'api_url' => $api_url,
-                'api_key' => $api_key,
-                'api_log' => $log
-            );
-        }
+        self::$config = array(
+            'api_user' => $configs['api_user'],
+            'api_password' => $configs['api_password'],
+            'api_database' => $configs['api_database'],
+            'api_modules' => $configs['api_modules'],
+            'log_path' => $configs['log_path'],
+            'api_url' => $configs['api_url'],
+            'enable_log' => $configs['enable_log']
+        );
+
 
         if (empty(self::$logger)) {
             // create a log channel
@@ -51,6 +51,7 @@ class RestAPIWrapperProffix
             self::$logger->pushHandler(new StreamHandler(self::$config['log_path']));
         }
     }
+
 //TODO: Better Error Handling + Response
     public function pxErrorHandler($response)
     {
@@ -69,7 +70,7 @@ class RestAPIWrapperProffix
      * @return mixed
      * @throws HttpException
      */
-    public function Get($endpoint,$filter = '')
+    public function Get($endpoint, $filter = '')
     {
 
         $endpoint = self::$config['api_url'] . $endpoint;
@@ -78,7 +79,7 @@ class RestAPIWrapperProffix
 
         $pxsessionid = $this->login();
 
-        $response = PHPHttpful::get($endpoint.$filterquery)
+        $response = PHPHttpful::get($endpoint . $filterquery)
             ->addHeader('PxSessionId', $pxsessionid)
             ->expectsJson()
             ->send();
@@ -86,7 +87,7 @@ class RestAPIWrapperProffix
 
         if ($response->code != 200) {
             $this->logout($pxsessionid);
-            if (self::$config['api_log']) {
+            if (self::$config['enable_log']) {
                 self::$logger->info('GET - Request failed: ', ['context' => array(
                     'pxSessionId' => $pxsessionid,
                     'Endpoint' => $endpoint,
@@ -129,11 +130,11 @@ class RestAPIWrapperProffix
         if ($status == 201) {
             $header = $response->headers->toArray();
             $pxsessionid = $header['pxsessionid'];
-            if (self::$config['api_log']) {
+            if (self::$config['enable_log']) {
                 self::$logger->info('Login successful: ', ['context' => array(
                     'pxSessionId' => $pxsessionid,
                     'Endpoint' => $endpoint,
-                    'Benutzer' => $user
+                    'Benutzer' => $user,
                 )]);
             }
             return $pxsessionid;
@@ -182,7 +183,7 @@ class RestAPIWrapperProffix
         //check url is valid and accessable
         $status = $response->code;
         if ($status != 204) {
-            if (self::$config['api_log']) {
+            if (self::$config['enable_log']) {
                 self::$logger->error('Logout failed: ', ['context' => array(
                     'pxSessionId' => $pxsessionid,
                     'Endpoint' => $endpoint,
@@ -194,7 +195,7 @@ class RestAPIWrapperProffix
             throw new HttpException($this->getHttpStatusMessage($status), $status);
         }
         if ($status == 204) {
-            if (self::$config['api_log']) {
+            if (self::$config['enable_log']) {
                 self::$logger->info('Logout successful: ', ['context' => array(
                     'pxSessionId' => $pxsessionid,
                     'Endpoint' => $endpoint,
@@ -213,7 +214,7 @@ class RestAPIWrapperProffix
      * @throws HttpException
      * @throws \Httpful\Exception\ConnectionErrorException
      */
-    public function Create($endpoint,$post)
+    public function Create($endpoint, $post)
     {
 
         $endpoint = self::$config['api_url'] . $endpoint;
@@ -231,7 +232,7 @@ class RestAPIWrapperProffix
 
         if ($response->code != 200) {
             $this->logout($pxsessionid);
-            if (self::$config['api_log']) {
+            if (self::$config['enable_log']) {
                 self::$logger->error('POST - Request failed: ', ['context' => array(
                     'pxSessionId' => $pxsessionid,
                     'Endpoint' => $endpoint,
@@ -242,7 +243,7 @@ class RestAPIWrapperProffix
             }
         } else
             $this->logout($pxsessionid);
-        if (self::$config['api_log']) {
+        if (self::$config['enable_log']) {
             self::$logger->info('POST - Request successful: ', ['context' => array(
                 'pxSessionId' => $pxsessionid,
                 'Endpoint' => $endpoint,
@@ -262,7 +263,7 @@ class RestAPIWrapperProffix
      * @throws HttpException
      * @throws \Httpful\Exception\ConnectionErrorException
      */
-    public function Update($endpoint,$post)
+    public function Update($endpoint, $post)
     {
 
         $endpoint = self::$config['api_url'] . $endpoint;
@@ -280,7 +281,7 @@ class RestAPIWrapperProffix
 
         if ($response->code != 200) {
             $this->logout($pxsessionid);
-            if (self::$config['api_log']) {
+            if (self::$config['enable_log']) {
                 self::$logger->error('PUT - Request failed: ', ['context' => array(
                     'pxSessionId' => $pxsessionid,
                     'Endpoint' => $endpoint,
@@ -291,7 +292,7 @@ class RestAPIWrapperProffix
             }
         } else
             $this->logout($pxsessionid);
-        if (self::$config['api_log']) {
+        if (self::$config['enable_log']) {
             self::$logger->info('PUT - Request successful: ', ['context' => array(
                 'pxSessionId' => $pxsessionid,
                 'Endpoint' => $endpoint,
@@ -323,7 +324,7 @@ class RestAPIWrapperProffix
 
 
         if (!empty($apikey)) {
-            if (self::$config['api_log']) {
+            if (self::$config['enable_log']) {
                 self::$logger->error('Info Request failed', ['context' => array(
                     'Endpoint' => 'PRO/Info',
                     'Message' => $missing
@@ -339,7 +340,7 @@ class RestAPIWrapperProffix
 
 
             if ($response->code != 200) {
-                if (self::$config['api_log']) {
+                if (self::$config['enable_log']) {
                     self::$logger->error('Info Request failed: ', ['context' => array(
                         'Endpoint' => $endpoint,
                         'Message' => $response->body,
@@ -348,7 +349,7 @@ class RestAPIWrapperProffix
                 }
                 echo($response);
             } else
-                if (self::$config['api_log']) {
+                if (self::$config['enable_log']) {
                     self::$logger->info('Info - Request successful: ', ['context' => array(
                         'Version' => $response->body->Version,
                         'NeuesteVersion' => $response->body->NeuesteVersion,
@@ -383,7 +384,7 @@ class RestAPIWrapperProffix
 
 
         if (!empty($apikey)) {
-            if (self::$config['api_log']) {
+            if (self::$config['enable_log']) {
                 self::$logger->error('Info Request failed', ['context' => array(
                     'Endpoint' => 'PRO/Datenbank',
                     'Message' => $missing
@@ -399,7 +400,7 @@ class RestAPIWrapperProffix
 
 
             if ($response->code != 200) {
-                if (self::$config['api_log']) {
+                if (self::$config['enable_log']) {
                     self::$logger->error('Info Request failed: ', ['context' => array(
                         'Endpoint' => $endpoint,
                         'Message' => $response->body,
@@ -408,7 +409,7 @@ class RestAPIWrapperProffix
                 }
                 echo($response);
             } else
-                if (self::$config['api_log']) {
+                if (self::$config['enable_log']) {
                     self::$logger->info('Info - Request successful: ', ['context' => array(
                         'Endpoint' => $endpoint,
                         'Message' => $response->body,
