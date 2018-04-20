@@ -6,7 +6,7 @@
     "keywords": ["rest", "curl", "proffix", "restful", "api", "proffix rest api","php","wrapper"],
     "require": {
         "nategood/httpful": "0.2.*",
-        "monolog/monolog": "~1.13"
+        "monolog/monolog": "~1.23"
     },
     "authors": [
         {
