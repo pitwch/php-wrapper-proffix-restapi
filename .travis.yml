@@ -1,0 +1,28 @@
+language: php
+php:
+  - 5.4
+  - 5.5
+  - 5.6
+  - 7.0
+  
+matrix:
+  fast_finish: true
+  allow_failures:
+    - php: 5.1
+  
+script:
+  - phpunit -c ./tests/phpunit.xml
+
+before_deploy:
+  - composer buildphar
+  
+deploy:
+  provider: releases
+  api_key: $GITHUB_API_KEY
+  file:
+    - build/PhpWrapperProffix.phar
+    - build/PhpWrapperProffix.phar.asc
+  skip_cleanup: true
+  on:
+    tags: false
+    php: 7.0

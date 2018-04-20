@@ -1,6 +1,6 @@
 {
-    "name": "pitw/rest-api-wrapper-proffix-php",
-    "description": "Small PHP Wrapper for PROFFIX REST API",
+    "name": "pitwch/rest-api-wrapper-proffix-php",
+    "description": "PHP Wrapper for PROFFIX REST API",
     "homepage": "https://www.pitw.ch",
     "license": "MIT",
     "keywords": ["rest", "curl", "proffix", "restful", "api", "proffix rest api","php","wrapper"],
@@ -17,6 +17,33 @@
     "autoload": {
         "psr-0": {
             "RestAPIWrapperProffix": "src/"
+        }
+     },
+    "bin" : ["app/junitdiff"],
+    "require-dev": {
+        "phpunit/phpunit": "^4.8||^5.4",
+        "mockery/mockery": "^0.9.5"
+    },
+    "scripts": {
+        "buildphar" : [
+            "rm -rf vendor",
+            "composer install --no-dev --prefer-dist",
+            "curl -o createPhar -L `curl -s https://api.github.com/repos/MacFJA/PharBuilder/releases | grep browser_download_url | head -n 1 | cut -d '\"' -f 4`",
+            "chmod 755 createPhar",
+            "mkdir -p ./build",
+            "php -d phar.readonly=0 ./createPhar package composer.json"
+        ]
+    },
+    "extra": {
+        "phar-builder": {
+            "compression": "GZip",
+            "name": "PhpWrapperProffix.phar",
+            "output-dir": "./build",
+            "include-dev": false,
+            "include" : [
+                "src"
+            ],
+            "skip-shebang" : false
         }
     }
 }
