@@ -67,28 +67,37 @@ Folgende unterschiedlichen Methoden sind mit dem Wrapper möglich:
 ##### Get / Query
 
 ```php
-
 $client = new RestAPIWrapperProffix($config);
 $adresse = $client->Get("ADR/Adresse/1")  //Legt Response als Objects in $client ab
 $adresse->Name //DEMO AG
 ```
 
+###### Filter
+Soll bei einem GET-Request ein Filter verwendet werden, 
+kann dieser als zweiter Parameter übergeben werden (ohne "?filter=").
+
+Der Filter wird dann automatisch URL-encodiert.
+
+```php
+$client = new RestAPIWrapperProffix($config);
+$adressefilter = $client->Get("ADR/Adresse",'Name@="Max"')      // Mit Filter
+$adressefilter[0]->Name                                         //Muster AG
+```
+
 ##### Put / Update
 
 ```php
-
 $client = new RestAPIWrapperProffix($config);
-$putdata = array("AdressNr"=>1,"Ort"=>"Zürich","PLZ"=>8000,"EMail"=>"test@test.com");
-$adresse = $client->Update("ADR/Adresse",$putdata)  //Sendet $putdata an Endpunkt ADR/Adresse
+$data = array("AdressNr"=>1,"Ort"=>"Zürich","PLZ"=>8000,"EMail"=>"test@test.com");
+$adresse = $client->Update("ADR/Adresse",$data)  //Sendet $data an Endpunkt ADR/Adresse
 ```
 
 ##### Post / Create
 
 ```php
-
 $client = new RestAPIWrapperProffix($config);
-$postdata = array("AdressNr"=>1,"Ort"=>"Zürich","PLZ"=>8000,"EMail"=>"test@test.com");
-$adresse = $client->Create("ADR/Adresse",$postdata)  //Sendet $postdata an Endpunkt ADR/Adresse
+$data = array("AdressNr"=>1,"Ort"=>"Zürich","PLZ"=>8000,"EMail"=>"test@test.com");
+$adresse = $client->Create("ADR/Adresse",$data)  //Sendet $data an Endpunkt ADR/Adresse
 ```
 
 ##### GetInfo
@@ -96,11 +105,9 @@ $adresse = $client->Create("ADR/Adresse",$postdata)  //Sendet $postdata an Endpu
 Ruf Infos vom Endpunkt **PRO/Info** ab.
 
 ```php
-
 $client = new RestAPIWrapperProffix($config);
 $info1 = $client->GetInfo()  //Sofern der API - Key in der Konfiguration hinterlegt ist
 $info2 = $client->GetInfo("112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028")  //Der API - Key kann auch separat gesendet werden
-
 ```
 
 ##### GetDatabases
@@ -108,9 +115,13 @@ $info2 = $client->GetInfo("112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b101412
 Ruf Infos vom Endpunkt **PRO/Datenbank** ab.
 
 ```php
-
 $client = new RestAPIWrapperProffix($config);
 $datenbank1 = $client->GetDatabases()  //Sofern der API - Key in der Konfiguration hinterlegt ist
 $datenbank2 = $client->GetDatabases("112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028")  //Der API - Key kann auch separat gesendet werden
-
 ```
+
+
+### Weitere Beispiele
+
+Im Ordner [/examples](https://github.com/pitwch/php-wrapper-proffix-restapi/tree/master/examples) finden sich weitere,
+auskommentierte Beispiele.

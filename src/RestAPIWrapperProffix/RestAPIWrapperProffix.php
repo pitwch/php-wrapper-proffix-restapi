@@ -75,7 +75,7 @@ class RestAPIWrapperProffix
 
         $endpoint = self::$config['api_url'] . $endpoint;
         $user = self::$config['api_user'];
-        $filterquery = urldecode($filter);
+        $filterquery = empty($filter) ? '' : urldecode("?filter=".$filter);
 
         $pxsessionid = $this->login();
 
