@@ -4,12 +4,12 @@ php:
   - 5.5
   - 5.6
   - 7.0
-  
+
 matrix:
   fast_finish: true
   allow_failures:
     - php: 5.1
-    
+
 before_install:
   - travis_retry composer self-update
 
@@ -18,14 +18,13 @@ script:
 
 before_deploy:
   - composer buildphar
-  
+
 deploy:
   provider: releases
   api_key: $GITHUB_API_KEY
   file:
     - build/PhpWrapperProffix.phar
-    - build/PhpWrapperProffix.phar.asc
   skip_cleanup: true
   on:
     tags: false
-    php: 7.0
+    php: 5.6
