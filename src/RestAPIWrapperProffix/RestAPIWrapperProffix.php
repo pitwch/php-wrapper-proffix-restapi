@@ -47,7 +47,7 @@ class RestAPIWrapperProffix
 
         if (empty(self::$logger)) {
             // create a log channel
-            self::$logger = new Logger('ProffixRestAPIWrapperLogger');
+            self::$logger = new \Monolog\Logger('ProffixRestAPIWrapperLogger');
             self::$logger->pushHandler(new StreamHandler(self::$config['log_path']));
         }
     }
