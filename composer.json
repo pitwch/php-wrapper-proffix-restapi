@@ -19,7 +19,7 @@
             "RestAPIWrapperProffix": "src/"
         }
      },
-    "bin" : ["bootstrap.php"],
+    "bin" : ["src/RestAPIWrapperProffix"],
     "require-dev": {
         "phpunit/phpunit": "^4.8||^5.4",
         "mockery/mockery": "^0.9.5"
@@ -42,7 +42,7 @@
             "entry-point": "bootstrap.php",
             "include-dev": false,
             "include" : [
-                "src"
+                "src","vendor"
             ],
             "skip-shebang" : false
         }
