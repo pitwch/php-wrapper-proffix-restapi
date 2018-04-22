@@ -39,7 +39,7 @@
             "compression": "GZip",
             "name": "PhpWrapperProffix.phar",
             "output-dir": "./build",
-            "entry-point": "./src/RestAPIWrapperProffix/RestAPIWrapperProffix.php",
+            "entry-point": "bootstrap.php",
             "include-dev": false,
             "include" : [
                 "src"

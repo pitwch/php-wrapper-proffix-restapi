@@ -9,3 +9,6 @@
 .phpintel
 src/config.php
 index.php
+PhpWrapperProffix.phar.pubkey
+PhpWrapperProffix.phar
+PhpWrapperProffix.phar.version
