@@ -19,7 +19,7 @@
             "RestAPIWrapperProffix": "src/"
         }
      },
-    "bin" : ["app/junitdiff"],
+    "bin" : ["src/RestAPIWrapperProffix"],
     "require-dev": {
         "phpunit/phpunit": "^4.8||^5.4",
         "mockery/mockery": "^0.9.5"
