@@ -7,6 +7,7 @@ use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use RestAPIWrapperProffix\Exception\HttpException;
 
+
 /**
  * RestAPIWrapperProffix wrapper class.
  */
