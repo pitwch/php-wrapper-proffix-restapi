@@ -26,6 +26,9 @@ install:
 - travis_retry composer install --no-interaction
 - composer info -i
 
+before_script:
+ - chmod +x ./bin/deploy.sh
+ 
 script:
 - phpunit -c ./tests/phpunit.xml
 
