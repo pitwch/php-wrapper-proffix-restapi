@@ -16,7 +16,7 @@ composer require pitwch/php-wrapper-proffix-restapi
 - Schreibt Logfiles nach /log
 - Verwendet `PSR-0` autoload.
 
-#### Verwendung
+#### Variante 1: Verwendung mit Composer
 
 
 Autoload RestAPIWrapperProffix class:
@@ -25,9 +25,28 @@ Autoload RestAPIWrapperProffix class:
 require_once __DIR__ . '/vendor/autoload.php';
 
 use RestAPIWrapperProffix\RestAPIWrapperProffix;
+
+$client = new RestAPIWrapperProffix($config);
+
 ```
 
-Die Konfiguration erfolgt über ein Array mit folgenden Werten:
+#### Variante 2: Verwendung als PHAR
+
+Den aktuellsten Build als PHAR gibt es jeweils hier:
+
+[Download als PHAR](https://github.com/pitwch/php-wrapper-proffix-restapi/releases/latest)
+
+**Wichtig:** Die Schlüsseldatei **PhpWrapperProffix.phar.pubkey** muss ebenfalls heruntergeladen werden und ins selbe Verzeichnis wie die  **PhpWrapperProffix.phar** kopiert werden!
+
+```php
+include("PhpWrapperProffix.phar");
+
+$client = new \RestAPIWrapperProffix\RestAPIWrapperProffix($config);
+```
+
+#### Konfiguration
+
+Die Konfiguration ($config) erfolgt über ein Array mit folgenden Werten:
 
  Key          | Beispiel                                                         | Bemerkung                                               |
 |--------------|------------------------------------------------------------------|---------------------------------------------------------|
