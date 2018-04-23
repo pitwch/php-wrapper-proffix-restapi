@@ -1,30 +1,38 @@
+sudo: false
 language: php
-php:
-  - 5.4
-  - 5.5
-  - 5.6
-  - 7.0
+
+cache:
+  directories:
+  - $HOME/.composer/cache
+  - vendor
 
 matrix:
   fast_finish: true
+  include:
+  - php: 5.5
+  - php: 5.6
+  - php: 7.0
+    env:
+    - EXECUTE_DEPLOYMENT=true
+  - php: 7
+  - php: hhvm
   allow_failures:
-    - php: 5.1
+  - php: hhvm
 
 before_install:
-  - travis_retry composer self-update
+- openssl aes-256-cbc -K $encrypted_7f463b6b860b_key -iv $encrypted_7f463b6b860b_iv
+  -in .travis/secrets.tar.enc -out .travis/secrets.tar -d
+- phpenv config-rm xdebug.ini
+- composer self-update
+
+install:
+- travis_retry composer install --no-interaction
+- composer info -i
 
 script:
-  - phpunit -c ./tests/phpunit.xml
+- phpunit -c ./tests/phpunit.xml
 
-before_deploy:
-  - composer buildphar
 
-deploy:
-  provider: releases
-  api_key: $GITHUB_API_KEY
-  file:
-    - build/PhpWrapperProffix.phar
-  skip_cleanup: true
-  on:
-    tags: false
-    php: 7.0
+after_success:
+- if [[ $EXECUTE_DEPLOYMENT == 'true' && $TRAVIS_BRANCH == 'master' && $TRAVIS_PULL_REQUEST == 'false' ]]; then composer install --no-dev ; fi
+- if [[ $EXECUTE_DEPLOYMENT == 'true' && $TRAVIS_BRANCH == 'master' && $TRAVIS_PULL_REQUEST == 'false' ]]; then ./bin/deploy.sh ; fi
