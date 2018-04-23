@@ -11,4 +11,9 @@ src/config.php
 index.php
 PhpWrapperProffix.phar.pubkey
 PhpWrapperProffix.phar
-PhpWrapperProffix.phar.version
+.travis/secrets.tar
+.travis/*.pem
+box.json
+box.phar
+manifest.json
+phpunit.xml
