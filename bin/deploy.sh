@@ -29,8 +29,8 @@ mv PhpWrapperProffix.phar PhpWrapperProffix.phar.tmp
 # Checkout gh-pages and add PHAR file and version:
 git checkout -b gh-pages deploy/gh-pages
 mv PhpWrapperProffix.phar.tmp PhpWrapperProffix.phar
-sha1sum component-installer.phar > PhpWrapperProffix.phar.version
-git add component-installer.phar PhpWrapperProffix.phar.version
+sha1sum PhpWrapperProffix.phar > PhpWrapperProffix.phar.version
+git add PhpWrapperProffix.phar PhpWrapperProffix.phar.version
 
 # Commit and push:
 git commit -m 'Rebuilding phar'
