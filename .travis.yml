@@ -42,6 +42,7 @@ deploy:
   file:
     - "PhpWrapperProffix.phar"
     - "PhpWrapperProffix.phar.version"
+    - "PhpWrapperProffix.phar.pubkey"
   skip_cleanup: true
   on:
     tags: false
