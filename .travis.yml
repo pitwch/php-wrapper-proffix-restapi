@@ -44,4 +44,4 @@ deploy:
     - "PhpWrapperProffix.phar.version"
   skip_cleanup: true
   on:
-    tags: true
+    tags: false
