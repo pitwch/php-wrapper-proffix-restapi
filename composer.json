@@ -23,28 +23,5 @@
     "require-dev": {
         "phpunit/phpunit": "^4.8||^5.4",
         "mockery/mockery": "^0.9.5"
-    },
-    "scripts": {
-        "buildphar" : [
-            "rm -rf vendor",
-            "composer install --no-dev --prefer-dist",
-            "curl -o createPhar -L `curl -s https://api.github.com/repos/MacFJA/PharBuilder/releases | grep browser_download_url | head -n 1 | cut -d '\"' -f 4`",
-            "chmod 755 createPhar",
-            "mkdir -p ./build",
-            "php -d phar.readonly=0 ./createPhar package composer.json"
-        ]
-    },
-    "extra": {
-        "phar-builder": {
-            "compression": "GZip",
-            "name": "PhpWrapperProffix.phar",
-            "output-dir": "./build",
-            "entry-point": "bootstrap.php",
-            "include-dev": false,
-            "include" : [
-                "src","vendor"
-            ],
-            "skip-shebang" : false
-        }
     }
 }
