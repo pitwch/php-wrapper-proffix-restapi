@@ -24,14 +24,14 @@ chmod 755 box.phar
 ./box.phar build -vv
 # Without the following step, we cannot checkout the gh-pages branch due to
 # file conflicts:
-mv component-installer.phar component-installer.phar.tmp
+mv PhpWrapperProffix.phar PhpWrapperProffix.phar.tmp
 
 # Checkout gh-pages and add PHAR file and version:
 git checkout -b gh-pages deploy/gh-pages
-mv component-installer.phar.tmp component-installer.phar
-sha1sum component-installer.phar > component-installer.phar.version
-git add component-installer.phar component-installer.phar.version
+mv PhpWrapperProffix.phar.tmp PhpWrapperProffix.phar
+sha1sum component-installer.phar > PhpWrapperProffix.phar.version
+git add component-installer.phar PhpWrapperProffix.phar.version
 
 # Commit and push:
-git commit -m 'Rebuilt phar'
+git commit -m 'Rebuilding phar'
 git push deploy gh-pages:gh-pages
