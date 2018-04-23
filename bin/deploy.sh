@@ -8,8 +8,8 @@ chmod 600 .travis/build-key.pem
 ssh-add .travis/build-key.pem
 
 # Setup git defaults:
-git config --global user.email "5676857+pitw@users.noreply.github.com
-git config --global user.name "sp"
+git config --global user.email "5676857+pitw@users.noreply.github.com"
+git config --global user.name "pitw"
 
 # Add SSH-based remote to GitHub repo:
 git remote add deploy git@github.com:pitwch/php-wrapper-proffix-restapi.git
