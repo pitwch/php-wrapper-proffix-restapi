@@ -4,7 +4,7 @@
 
 
 ### Installation
-Der Wrapper kann entweder direkt heruntergeladen, geklont, via [Composer](https://getcomposer.org) oder als PHAR installiert werden.
+Der Wrapper kann entweder geklont via [Composer](https://getcomposer.org) oder als PHAR installiert werden.
 
 ```php
 composer require pitwch/php-wrapper-proffix-restapi
