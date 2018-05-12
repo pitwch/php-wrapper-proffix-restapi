@@ -3,6 +3,8 @@
     "description": "PHP Wrapper for PROFFIX REST API",
     "homepage": "https://www.pitw.ch",
     "license": "MIT",
+    "version": "1.0.1",
+    "minimum-stability": "dev",
     "keywords": ["rest", "curl", "proffix", "restful", "api", "proffix rest api","php","wrapper"],
     "require": {
         "nategood/httpful": "0.2.*",
