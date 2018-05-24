@@ -53,10 +53,10 @@ class Options
 
     }
 
-    public function noLogin()
+    public function doLogin()
     {
 
-        return isset($this->options['px_no_login']) ? $this->options['px_no_login'] : self::NO_LOGIN;
+        return isset($this->options['px_no_login']) ? $this->options['px_no_login'] : true;
 
     }
 

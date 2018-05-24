@@ -4,7 +4,7 @@ namespace Pitwch\RestAPIWrapperProffix\HttpClient;
 
 
 use Pitwch\RestAPIWrapperProffix\Client;
-use Pitwch\RestAPIWrapperProffix\HttpClientException;
+use Pitwch\RestAPIWrapperProffix\HttpClient\HttpClientException;
 use Pitwch\RestAPIWrapperProffix\HttpClient\Options;
 use Pitwch\RestAPIWrapperProffix\HttpClient\Request;
 use Pitwch\RestAPIWrapperProffix\HttpClient\Response;
@@ -47,7 +47,7 @@ class HttpClient
         $this->apiPassword = $apiPassword;
         $this->apiDatabase = $apiDatabase;
         $this->apiModules = $apiModules;
-        $this->pxSessionId = $this->login();
+        $this->options->doLogin() ? $this->pxSessionId = $this->login() : $this->pxSessionId = '';
     }
 
 
@@ -78,7 +78,11 @@ class HttpClient
      */
     protected function buildUrlQuery($url, $parameters = [])
     {
+
         if (!empty($parameters)) {
+            if($parameters['key'] = '') {
+                $parameters['key'] = $this->options->getApiKey();
+            }
             $url .= '?' . \http_build_query($parameters);
         }
 
