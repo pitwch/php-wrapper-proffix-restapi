@@ -1,9 +1,8 @@
 <?php
 
 
-namespace Pitwch\Client;
+namespace Pitwch\RestAPIWrapperProffix;
 
-use Pitwch\RestAPIWrapperProffix\HttpClient\Auth;
 use Pitwch\RestAPIWrapperProffix\HttpClient\HttpClient;
 
 
