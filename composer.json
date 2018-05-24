@@ -22,10 +22,10 @@
   },
   "autoload": {
     "psr-4": {
-      "Pitwch\\WestAPIWrapperProffix\\": ["src/RestAPIWrapperProffix"]
+      "Pitwch\\RestAPIWrapperProffix\\": ["src/RestAPIWrapperProffix"]
     }
   },
   "autoload-dev": {
-    "psr-4": { "Pitwch\\WestAPIWrapperProffix\\Tests\\": "tests/RestAPIWrapperProffix" }
+    "psr-4": { "Pitwch\\RestAPIWrapperProffix\\Tests\\": "tests/RestAPIWrapperProffix" }
   }
 }
