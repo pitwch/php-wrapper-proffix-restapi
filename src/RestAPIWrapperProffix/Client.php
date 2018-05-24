@@ -13,7 +13,6 @@ class Client
 
 
     public $http;
-    public $auth;
 
     public function __construct($url, $apiDatabase, $apiUser, $apiPassword, $apiModules, $options = [])
     {
