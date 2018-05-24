@@ -53,11 +53,16 @@ class Options
 
     }
 
-    public function doLogin()
+    public function noLogin()
     {
 
         return isset($this->options['px_no_login']) ? $this->options['px_no_login'] : true;
 
+    }
+
+    public function doLogin()
+    {
+        return !in_array($this->noLogin(),self::NO_LOGIN);
     }
 
     public function getApiKey()
