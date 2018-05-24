@@ -4,6 +4,11 @@ namespace Pitwch\RestAPIWrapperProffix\HttpClient;
 
 
 use Pitwch\RestAPIWrapperProffix\Client;
+use Pitwch\RestAPIWrapperProffix\HttpClientException;
+use Pitwch\RestAPIWrapperProffix\Options;
+use Pitwch\RestAPIWrapperProffix\Request;
+use Pitwch\RestAPIWrapperProffix\Response;
+
 
 class HttpClient
 {
