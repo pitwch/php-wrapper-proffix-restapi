@@ -62,7 +62,7 @@ class Options
 
     public function getApiKey()
     {
-        return isset($this->options['px_api_key']) ? $this->options['px_api_key'] : '';
+        return isset($this->options['key']) ? $this->options['key'] : '';
 
     }
 

@@ -47,7 +47,8 @@ class HttpClient
         $this->apiPassword = $apiPassword;
         $this->apiDatabase = $apiDatabase;
         $this->apiModules = $apiModules;
-        $this->options->doLogin() ? $this->pxSessionId = $this->login() : $this->pxSessionId = '';
+        //$this->options->doLogin() ? $this->pxSessionId = $this->login() : $this->pxSessionId = '';
+        $this->pxSessionId = '';
     }
 
 
@@ -80,9 +81,11 @@ class HttpClient
     {
 
         if (!empty($parameters)) {
-            if($parameters['key'] = '') {
-                $parameters['key'] = $this->options->getApiKey();
-            }
+//            if($parameters['key'] = '') {
+//                array_push($parameters,array('key'=> 'test');
+//            }
+            $parameters['key'] = $this->options->getApiKey();
+
             $url .= '?' . \http_build_query($parameters);
         }
 
@@ -119,6 +122,13 @@ class HttpClient
     {
         $headers = [];
 
+        if($this->options->doLogin()){
+            $headerarray = array("Cache-Control: no-cache","Content-Type: application/json","PxSessionId:" . $this->pxSessionId);
+        } else{
+            $headerarray =  array("Cache-Control: no-cache","Content-Type: application/json");
+        }
+
+
         $body = \json_encode($this->buildLoginJson());
         $curl = curl_init();
 
@@ -132,10 +142,7 @@ class HttpClient
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HEADER => true,
             CURLOPT_POSTFIELDS => $body,
-            CURLOPT_HTTPHEADER => array(
-                "Cache-Control: no-cache",
-                "Content-Type: application/json",
-            ),
+            CURLOPT_HTTPHEADER => $headerarray,
         ));
 
         $response = curl_exec($curl);
@@ -171,6 +178,8 @@ class HttpClient
      */
     protected function logout()
     {
+
+
         $curl = curl_init();
         curl_setopt_array($curl, array(
             CURLOPT_URL => $this->buildLoginUrl(),
@@ -411,7 +420,7 @@ class HttpClient
         $response = $this->createResponse();
 
         //Logout
-        $this->logout($this->pxSessionId);
+        $this->options->doLogin() ? $this->logout($this->pxSessionId) : '';
         // Check for cURL errors.
         if (\curl_errno($this->ch)) {
             throw new HttpClientException('cURL Error: ' . \curl_error($this->ch), 0, $request, $response);
