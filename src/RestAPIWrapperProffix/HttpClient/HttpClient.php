@@ -429,11 +429,4 @@ class HttpClient
         return $this->response;
     }
 
-    /**
-     * @return string
-     */
-    public function test()
-    {
-        return $this->options->apiPrefix();
-    }
 }
