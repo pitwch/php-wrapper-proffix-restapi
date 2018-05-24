@@ -81,10 +81,10 @@ class HttpClient
     {
 
         if (!empty($parameters)) {
-//            if($parameters['key'] = '') {
-//                array_push($parameters,array('key'=> 'test');
-//            }
-            $parameters['key'] = $this->options->getApiKey();
+
+            if (empty($parameters['key'])) {
+                $parameters['key'] = $this->options->getApiKey();
+            }
 
             $url .= '?' . \http_build_query($parameters);
         }
