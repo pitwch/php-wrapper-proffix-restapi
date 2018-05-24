@@ -16,6 +16,8 @@ class Options
 
     const LOGIN_ENDPOINT = 'PRO/Login';
 
+    const NO_LOGIN = array('PRO/Info', 'PRO/Datenbank');
+
     private $options;
 
 
@@ -30,7 +32,6 @@ class Options
         return isset($this->options['version']) ? $this->options['version'] : self::VERSION;
     }
 
-
     public function verifySsl()
     {
         return isset($this->options['verify_ssl']) ? (bool)$this->options['verify_ssl'] : true;
@@ -41,19 +42,27 @@ class Options
         return isset($this->options['timeout']) ? (int)$this->options['timeout'] : self::TIMEOUT;
     }
 
-    public function isPXAPI()
-    {
-        return isset($this->options['wp_api']) ? (bool)$this->options['wp_api'] : false;
-    }
-
     public function apiPrefix()
     {
-       return isset($this->options['px_api_prefix']) ? $this->options['px_api_prefix'] : self::PX_API_PREFIX;
+        return isset($this->options['px_api_prefix']) ? $this->options['px_api_prefix'] : self::PX_API_PREFIX;
     }
 
     public function getLoginEndpoint()
     {
         return isset($this->options['px_login_endpoint']) ? $this->options['px_login_endpoint'] : self::LOGIN_ENDPOINT;
+
+    }
+
+    public function noLogin()
+    {
+
+        return isset($this->options['px_no_login']) ? $this->options['px_no_login'] : self::NO_LOGIN;
+
+    }
+
+    public function getApiKey()
+    {
+        return isset($this->options['px_api_key']) ? $this->options['px_api_key'] : '';
 
     }
 

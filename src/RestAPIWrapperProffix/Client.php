@@ -47,12 +47,17 @@ class Client
 
     }
 
+    public function info($px_api_key = ''){
 
-    public function test($url, $apiDatabase, $apiUser, $apiPassword, $apiModules, $options)
-    {
-        $login = new Auth($url, $apiDatabase, $apiUser, $apiPassword, $apiModules, $options);
+        return $this->http->request('PRO/Info', 'GET', [], array('key'=>$px_api_key));
 
-        $test = $login->login();
-        return $test;
     }
+
+    public function database($px_api_key = ''){
+
+        return $this->http->request('PRO/Datenbank', 'GET', [], array('key'=>$px_api_key));
+
+    }
+
+
 }
