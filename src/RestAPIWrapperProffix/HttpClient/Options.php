@@ -58,18 +58,6 @@ class Options
 
     }
 
-    public function getFilter()
-    {
-        return isset($this->options['filter']) ? $this->options['filter'] : '';
-
-    }
-
-    public function getLimit()
-    {
-        return isset($this->options['limit']) ? $this->options['limit'] : '';
-
-    }
-
     public function userAgent()
     {
         return isset($this->options['user_agent']) ? $this->options['user_agent'] : self::USER_AGENT;
