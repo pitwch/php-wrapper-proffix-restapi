@@ -53,21 +53,21 @@ class Options
 
     }
 
-    public function noLogin()
-    {
-
-        return isset($this->options['px_no_login']) ? $this->options['px_no_login'] : true;
-
-    }
-
-    public function doLogin()
-    {
-        return !in_array($this->noLogin(),self::NO_LOGIN);
-    }
-
     public function getApiKey()
     {
         return isset($this->options['key']) ? $this->options['key'] : '';
+
+    }
+
+    public function getFilter()
+    {
+        return isset($this->options['filter']) ? $this->options['filter'] : '';
+
+    }
+
+    public function getLimit()
+    {
+        return isset($this->options['limit']) ? $this->options['limit'] : '';
 
     }
 
