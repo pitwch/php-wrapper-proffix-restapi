@@ -362,12 +362,12 @@ class HttpClient
     protected function lookForErrors($parsedResponse)
     {
 
-        // Any non-200/201/202 response code indicates an error.
-        if (!\in_array($this->response->getCode(), ['200', '201', '202'])) {
+        // Any non-200/201/202/204 response code indicates an error.
+        if (!\in_array($this->response->getCode(), ['200', '201', '202','204'])) {
             $errors = isset($parsedResponse->errors) ? $parsedResponse->errors : $parsedResponse;
+            if (($errors->Fields)) {
 
-            if (is_array($errors)) {
-                $errorMessage = $errors[0]->Message;
+                $errorMessage = print_r($errors);
                 $errorCode = $this->response->getCode();
             } else {
                 $errorMessage = $errors->Message;
@@ -383,7 +383,12 @@ class HttpClient
 
         }
     }
-
+    //TODO
+    protected function parsePxErrorMessage($errors){
+        foreach ($errors as $error){
+            $clean[] = $error;
+        }
+    }
     /**
      * @return mixed
      * @throws \Pitwch\RestAPIWrapperProffix\HttpClient\HttpClientException
@@ -395,7 +400,7 @@ class HttpClient
         $parsedResponse = \json_decode($body);
 
         // Test if return a valid JSON.
-        if (JSON_ERROR_NONE !== json_last_error() && $this->response->getCode() != 201) {
+        if (JSON_ERROR_NONE !== json_last_error() && ($this->response->getCode() != 201 && $this->response->getCode() != 204)) {
             $message = function_exists('json_last_error_msg') ? json_last_error_msg() : 'Invalid JSON returned';
             throw new HttpClientException($message, $this->response->getCode(), $this->request, $this->response);
         }
