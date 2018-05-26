@@ -79,26 +79,23 @@ class HttpClient
      */
     protected function buildUrlQuery($url, $parameters = [])
     {
+        //Create empty query
+        $query = array();
 
         if (!empty($parameters)) {
 
-            if (empty($parameters['key'])) {
-                $parameters['key'] = $this->options->getApiKey();
-            }
+            //Check if we need to send ?key Param
+            if(array_key_exists('key',$parameters)){
 
-            if (empty($parameters['filter'])) {
-                if(!empty($this->options->getFilter())){
-                    $parameters['filter'] = $this->options->getFilter();
+                //Check if Param Key is empty -> use from Options
+                if(empty($parameters['key'])){
+                    $parameters['key'] = $this->options->getApiKey();
+
                 }
             }
 
-            if (empty($parameters['limit'])) {
-                if (!empty($this->options->getLimit())) {
-
-                    $parameters['limit'] = $this->options->getLimit();
-                }
-            }
             $url .= '?'. \http_build_query($parameters);
+
         }
 
         return $url;
