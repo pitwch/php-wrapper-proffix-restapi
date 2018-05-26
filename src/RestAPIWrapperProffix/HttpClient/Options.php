@@ -12,7 +12,7 @@ class Options
 
     const PX_API_PREFIX = '/pxapi/';
 
-    const USER_AGENT = 'REST API Wrapper PHP';
+    const USER_AGENT = 'php-wrapper-proffix-restapi';
 
     const LOGIN_ENDPOINT = 'PRO/Login';
 
@@ -25,7 +25,6 @@ class Options
     {
         $this->options = $options;
     }
-
 
     public function getVersion()
     {
@@ -44,12 +43,12 @@ class Options
 
     public function apiPrefix()
     {
-        return isset($this->options['px_api_prefix']) ? $this->options['px_api_prefix'] : self::PX_API_PREFIX;
+        return isset($this->options['api_prefix']) ? $this->options['api_prefix'] : self::PX_API_PREFIX;
     }
 
     public function getLoginEndpoint()
     {
-        return isset($this->options['px_login_endpoint']) ? $this->options['px_login_endpoint'] : self::LOGIN_ENDPOINT;
+        return isset($this->options['login_endpoint']) ? $this->options['login_endpoint'] : self::LOGIN_ENDPOINT;
 
     }
 

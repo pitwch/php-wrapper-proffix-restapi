@@ -22,11 +22,10 @@ composer require pitwch/php-wrapper-proffix-restapi
 Autoload RestAPIWrapperProffix class:
 
 ```php
-require_once __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/vendor/autoload.php';
 
-use RestAPIWrapperProffix\RestAPIWrapperProffix;
+use Pitwch\RestAPIWrapperProffix\Client;
 
-$client = new RestAPIWrapperProffix($config);
 
 ```
 
@@ -46,47 +45,48 @@ $client = new \RestAPIWrapperProffix\RestAPIWrapperProffix($config);
 
 #### Konfiguration
 
-Die Konfiguration ($config) erfolgt über ein Array mit folgenden Werten:
+Die Konfiguration wird dem Client mitgegeben:
 
- Key          | Beispiel                                                         | Bemerkung                                               |
-|--------------|------------------------------------------------------------------|---------------------------------------------------------|
-| api_user     | SP                                                               | Benutzername                                            |
-| api_password | b62cce2fe18f7a156a9c719c57bebf0478a3d50f0d7bd18d9e8a40be2e663017 | Passwort als SHA256 - Hash                              |
-| api_url      | DEMO                                                             | Datenbankname                                           |
-| api_modules  | ADR,FIB,DEB                                                      | Benötigte Module mit Komma getrennt                     |
-| api_key      | 112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028 | Fakultativ: API-Key als SHA256 - Hash                   |
-| enable_log   | true                                                             | Fakultativ: Log aktivieren                              |
-| log_path     | /../../log/demo.log                                              | Fakultativ: Pfad der Log-Files. Standard im Ordner /log |
+| Konfiguration    | Beispiel                                                                         | Bemerkung                                        |
+|------------------|----------------------------------------------------------------------------------|--------------------------------------------------|
+| url              | https://myserver.ch:999                                                          | URL der REST-API **ohne pxapi/v2/**              |
+| apiDatabase      | DEMO                                                                             | Name der Datenbank                               |
+| apiUser          | USR                                                                              | Names des Benutzers                              |
+| apiPassword      | b62cce2fe18f7a156a9c719c57bebf0478a3d50f0d7bd18d9e8a40be2e663017                 | SHA256-Hash des Benutzerpasswortes               |
+| apiModule        | ADR,STU                                                                          | Benötigte Module (mit Komma getrennt)            |
+| options          | array('key'=>'112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028') | Optionen (Details unter Optionen)                |
 
-
-Anschliessend kann die `RestAPIWrapperProffix` Klasse für die weitere Verwendung genutzt werden.
 
 Beispiel:
 ```php
 
-$config = array(
-    'api_user' => 'SP',
-    'api_password' => 'b62cce2fe18f7a156a9c719c57bebf0478a3d50f0d7bd18d9e8a40be2e663017',
-    'api_database' => 'DEMO',
-    'api_url' => 'https://restapi.myserver.ch:123/pxapi/v2/',
-    'api_modules' => 'ADR,FIB,DEB',
-    'api_key' => '112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028',
-    'enable_log' => true,
-    'log_path' => ''
-);
-$client = new RestAPIWrapperProffix($config);
-$adresse = $client->Get("ADR/Adresse/1")
-$adresse->Name //DEMO AG
+require __DIR__ . '/vendor/autoload.php';
+
+use Pitwch\RestAPIWrapperProffix\Client;
+
+$pxrest =  new  Client(
+    'https://myserver.ch:999',
+    'DEMO',
+    'USR',
+    'b62cce2fe18f7a156a9c719c57bebf0478a3d50f0d7bd18d9e8a40be2e663017',
+    'ADR,STU',
+    array('key'=>'112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028','limit'=>2));
+$adressen = $pxrest->get('ADR/Adresse',array('filter'=>'GeaendertAm>d\'2018-05-17 14:54:56\'','depth'=>1,'fields'=>'AdressNr,Name,GeaendertAm'));;
+print_r($adressen);
 ```
 ### Optionen
 
- Key          | Beispiel                                                         | Bemerkung                                               |
-|--------------|------------------------------------------------------------------|---------------------------------------------------------|
-| key          | 112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028 | API Key as SHA256 - Hash                                            |
-| api_password | b62cce2fe18f7a156a9c719c57bebf0478a3d50f0d7bd18d9e8a40be2e663017 | Passwort als SHA256 - Hash                              |
-| api_url      | DEMO                                                             | Datenbankname                                           |
-| api_modules  | ADR,FIB,DEB    
+Optionen sind **fakultativ** und werden in der Regel nicht benötigt:
 
+| Option           | Beispiel                                                         | Bemerkung                                                      |
+|------------------|------------------------------------------------------------------|----------------------------------------------------------------|
+| key              | 112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028 | API-Key als SHA256 - Hash (kann auch direkt mitgegeben werden) |
+| version          | v2                                                               | API-Version; Standard = v2                                     |
+| api_prefix       | /pxapi/                                                          | Prefix für die API; Standard = /pxapi/                         |
+| login_endpoint   | PRO/Login                                                        | Endpunkt für Login; Standard = PRO/Login                       |
+| user_agent       | php-wrapper-proffix-restapi                                      | User Agent; Standard = php-wrapper-proffix-restapi             |
+| timeout          | 15                                                               | Timeout für Curl in Sekunden; Standard = 15                    |
+| follow_redirects | true                                                             | Weiterleitungen der API folgen; Standard = false               |
 
 #### Methoden
 
@@ -96,51 +96,40 @@ Folgende unterschiedlichen Methoden sind mit dem Wrapper möglich:
 ##### Get / Query
 
 ```php
-$client = new RestAPIWrapperProffix($config);
-$adresse = $client->Get("ADR/Adresse/1")  //Legt Response als Objects in $client ab
+$pxrest =  new  Client(...)
+$adresse = $pxrest->get("ADR/Adresse/1")  //Legt Response als Objects in $adresse ab
 $adresse->Name //DEMO AG
 ```
 
-###### Filter
-Soll bei einem GET-Request ein Filter verwendet werden, 
-kann dieser als zweiter Parameter übergeben werden (ohne "?filter=").
-
-Der Filter wird dann automatisch URL-encodiert.
-
-```php
-$client = new RestAPIWrapperProffix($config);
-$adressefilter = $client->Get("ADR/Adresse",'Name@="Max"')      // Mit Filter
-$adressefilter[0]->Name                                         //Muster AG
-```
 
 ##### Put / Update
 
 ```php
-$client = new RestAPIWrapperProffix($config);
+$pxrest =  new  Client(...)
 $data = array("AdressNr"=>1,"Ort"=>"Zürich","PLZ"=>8000,"EMail"=>"test@test.com");
-$adresse = $client->Update("ADR/Adresse",$data)  //Sendet $data an Endpunkt ADR/Adresse
+$adresse = $pxrest->put("ADR/Adresse",$data)  //Sendet $data an Endpunkt ADR/Adresse
 ```
 
 ##### Post / Create
 
 ```php
-$client = new RestAPIWrapperProffix($config);
+$pxrest =  new  Client(...)
 $data = array("AdressNr"=>1,"Ort"=>"Zürich","PLZ"=>8000,"EMail"=>"test@test.com");
-$adresse = $client->Create("ADR/Adresse",$data)  //Sendet $data an Endpunkt ADR/Adresse
+$adresse = $pxrest->post("ADR/Adresse",$data)  //Sendet $data an Endpunkt ADR/Adresse
 ```
 
-##### GetInfo
+##### Info
 
 Ruft Infos vom Endpunkt **PRO/Info** ab.
 
 ```php
-$client = new Client(...);
+$pxrest =  new  Client(...)
 
 //Variante 1: API - Key direkt mitgeben
-$info1 = $client->info('112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028');
+$info1 = $pxrest->info('112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028');
   
 //Variante 2: API - Key aus Options verwenden (sofern dort hinterlegt)
-$info2 = $client->info();
+$info2 = $pxrest->info();
 ```
 
 ##### Datenbank
@@ -148,13 +137,13 @@ $info2 = $client->info();
 Ruft Infos vom Endpunkt **PRO/Datenbank** ab.
 
 ```php
-$client = new Client(...);
+$pxrest = new Client(...);
 
 //Variante 1: API - Key direkt mitgeben
-$datenbank1 = $client->database('112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028');
+$datenbank1 = $pxrest->database('112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028');
   
 //Variante 2: API - Key aus Options verwenden (sofern dort hinterlegt)
-$datenbank2 = $client->database();
+$datenbank2 = $pxrest->database();
   ```
 
 
