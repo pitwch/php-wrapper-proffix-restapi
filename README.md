@@ -16,7 +16,7 @@ composer require pitwch/rest-api-wrapper-proffix-php
 - Schreibt Logfiles nach /log
 - Verwendet `PSR-0` autoload.
 
-#### Variante 1: Verwendung mit Composer
+#### Variante 1: Verwendung mit Composer (empfohlen)
 
 
 Autoload RestAPIWrapperProffix class:
@@ -117,6 +117,9 @@ $pxrest =  new  Client(...)
 $data = array("AdressNr"=>1,"Ort"=>"Zürich","PLZ"=>8000,"EMail"=>"test@test.com");
 $adresse = $pxrest->post("ADR/Adresse",$data)  //Sendet $data an Endpunkt ADR/Adresse
 ```
+
+#### Spezielle Endpunkte
+
 
 ##### Info
 

@@ -41,12 +41,6 @@ class Client
         return $this->http->request($endpoint, 'DELETE', [], $parameters);
     }
 
-    public function options($endpoint)
-    {
-        return $this->http->request($endpoint, 'OPTIONS', [], []);
-
-    }
-
     public function info($px_api_key = ''){
 
         return $this->http->request('PRO/Info', 'GET', [], array('key'=>$px_api_key),false);
