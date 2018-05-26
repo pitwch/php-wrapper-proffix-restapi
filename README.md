@@ -78,6 +78,15 @@ $client = new RestAPIWrapperProffix($config);
 $adresse = $client->Get("ADR/Adresse/1")
 $adresse->Name //DEMO AG
 ```
+### Optionen
+
+ Key          | Beispiel                                                         | Bemerkung                                               |
+|--------------|------------------------------------------------------------------|---------------------------------------------------------|
+| key          | 112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028 | API Key as SHA256 - Hash                                            |
+| api_password | b62cce2fe18f7a156a9c719c57bebf0478a3d50f0d7bd18d9e8a40be2e663017 | Passwort als SHA256 - Hash                              |
+| api_url      | DEMO                                                             | Datenbankname                                           |
+| api_modules  | ADR,FIB,DEB    
+
 
 #### Methoden
 
@@ -122,23 +131,31 @@ $adresse = $client->Create("ADR/Adresse",$data)  //Sendet $data an Endpunkt ADR/
 
 ##### GetInfo
 
-Ruf Infos vom Endpunkt **PRO/Info** ab.
+Ruft Infos vom Endpunkt **PRO/Info** ab.
 
 ```php
-$client = new RestAPIWrapperProffix($config);
-$info1 = $client->GetInfo()  //Sofern der API - Key in der Konfiguration hinterlegt ist
-$info2 = $client->GetInfo("112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028")  //Der API - Key kann auch separat gesendet werden
+$client = new Client(...);
+
+//Variante 1: API - Key direkt mitgeben
+$info1 = $client->info('112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028');
+  
+//Variante 2: API - Key aus Options verwenden (sofern dort hinterlegt)
+$info2 = $client->info();
 ```
 
-##### GetDatabases
+##### Datenbank
 
-Ruf Infos vom Endpunkt **PRO/Datenbank** ab.
+Ruft Infos vom Endpunkt **PRO/Datenbank** ab.
 
 ```php
-$client = new RestAPIWrapperProffix($config);
-$datenbank1 = $client->GetDatabases()  //Sofern der API - Key in der Konfiguration hinterlegt ist
-$datenbank2 = $client->GetDatabases("112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028")  //Der API - Key kann auch separat gesendet werden
-```
+$client = new Client(...);
+
+//Variante 1: API - Key direkt mitgeben
+$datenbank1 = $client->database('112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028');
+  
+//Variante 2: API - Key aus Options verwenden (sofern dort hinterlegt)
+$datenbank2 = $client->database();
+  ```
 
 
 ### Weitere Beispiele

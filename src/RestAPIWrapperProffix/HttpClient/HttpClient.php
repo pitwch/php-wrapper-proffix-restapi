@@ -47,8 +47,8 @@ class HttpClient
         $this->apiPassword = $apiPassword;
         $this->apiDatabase = $apiDatabase;
         $this->apiModules = $apiModules;
-        //$this->options->doLogin() ? $this->pxSessionId = $this->login() : $this->pxSessionId = '';
-        $this->pxSessionId = '';
+        //$this->pxSessionId = $this->login();
+
     }
 
 
@@ -86,7 +86,19 @@ class HttpClient
                 $parameters['key'] = $this->options->getApiKey();
             }
 
-            $url .= '?' . \http_build_query($parameters);
+            if (empty($parameters['filter'])) {
+                if(!empty($this->options->getFilter())){
+                    $parameters['filter'] = $this->options->getFilter();
+                }
+            }
+
+            if (empty($parameters['limit'])) {
+                if (!empty($this->options->getLimit())) {
+
+                    $parameters['limit'] = $this->options->getLimit();
+                }
+            }
+            $url .= '?'. \http_build_query($parameters);
         }
 
         return $url;
@@ -122,11 +134,10 @@ class HttpClient
     {
         $headers = [];
 
-        if($this->options->doLogin()){
-            $headerarray = array("Cache-Control: no-cache","Content-Type: application/json","PxSessionId:" . $this->pxSessionId);
-        } else{
-            $headerarray =  array("Cache-Control: no-cache","Content-Type: application/json");
-        }
+
+        $headerarray = array("Cache-Control: no-cache","Content-Type: application/json","PxSessionId:" . $this->pxSessionId);
+
+
 
 
         $body = \json_encode($this->buildLoginJson());
@@ -248,7 +259,7 @@ class HttpClient
      * @return mixed
      * @throws \Pitwch\RestAPIWrapperProffix\HttpClient\HttpClientException
      */
-    protected function createRequest($endpoint, $method, $data = [], $parameters = [])
+    protected function createRequest($endpoint, $method, $data = [], $parameters = [],$nologin = false)
     {
         $body = '';
         $url = $this->url . $endpoint;
@@ -405,8 +416,10 @@ class HttpClient
      * @return mixed
      * @throws HttpClientException
      */
-    public function request($endpoint, $method, $data = [], $parameters = [])
+    public function request($endpoint, $method, $data = [], $parameters = [],$login = true)
     {
+        //Login
+        $this->pxSessionId = $login ? $this->login() : '';
         // Initialize cURL.
         $this->ch = \curl_init();
 
@@ -420,7 +433,8 @@ class HttpClient
         $response = $this->createResponse();
 
         //Logout
-        $this->options->doLogin() ? $this->logout($this->pxSessionId) : '';
+        $login ? $this->logout($this->pxSessionId) : '';
+
         // Check for cURL errors.
         if (\curl_errno($this->ch)) {
             throw new HttpClientException('cURL Error: ' . \curl_error($this->ch), 0, $request, $response);

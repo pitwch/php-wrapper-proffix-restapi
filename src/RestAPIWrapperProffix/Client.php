@@ -49,13 +49,13 @@ class Client
 
     public function info($px_api_key = ''){
 
-        return $this->http->request('PRO/Info', 'GET', [], array('key'=>$px_api_key));
+        return $this->http->request('PRO/Info', 'GET', [], array('key'=>$px_api_key),false);
 
     }
 
     public function database($px_api_key = ''){
 
-        return $this->http->request('PRO/Datenbank', 'GET', [], array('key'=>$px_api_key));
+        return $this->http->request('PRO/Datenbank', 'GET', [], array('key'=>$px_api_key),false);
 
     }
 
