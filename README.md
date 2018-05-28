@@ -90,12 +90,25 @@ Optionen sind **fakultativ** und werden in der Regel nicht benötigt:
 
 #### Methoden
 
+
+| Parameter  | Typ    | Bemerkung                                                                                                |
+|------------|--------|----------------------------------------------------------------------------------------------------------|
+| endpoint   | string | Endpunkt der PROFFIX REST-API; z.B. ADR/Adresse,STU/Rapporte...                                          |
+| data       | array  | Daten (werden automatisch in JSON konvertiert); z.B: array("Name"=>"Demo AG",...)                        |
+| parameters | array  | Parameter gemäss [PROFFIX REST API Docs](http://www.proffix.net/Portals/0/content/REST%20API/index.html) |
+
+
+*Sonderzeichen in den Parametern müssen gegebenfalls mit Escape-Zeichen verwendet werden, z.B:*
+
+```php
+//Escape ' with \'
+array('filter'=>'GeaendertAm>d\'2018-05-17 14:54:56\'','depth'=>1,'fields'=>'AdressNr,Name,GeaendertAm')
+```
+
+
 Folgende unterschiedlichen Methoden sind mit dem Wrapper möglich:
-| Parameter  | Typ    | Bemerkung                                                                                                  |
-|------------|--------|------------------------------------------------------------------------------------------------------------|
-| endpoint   | string | Endpunkt der PROFFIX REST-API; z.B. ADR/Adresse,STU/Rapporte...                                            |
-| data       | array  | Daten (werden automatisch in JSON konvertiert)                                                             |
-| parameters | array  | Parameter gemäss [PROFFIX REST API Docs](http://www.proffix.net/Portals/0/content/REST%20API/index.html)   |
+
+
 
 ##### Get / Query
 
