@@ -91,14 +91,24 @@ Optionen sind **fakultativ** und werden in der Regel nicht benötigt:
 #### Methoden
 
 Folgende unterschiedlichen Methoden sind mit dem Wrapper möglich:
-
+| Parameter  | Typ    | Bemerkung                                                                                                  |
+|------------|--------|------------------------------------------------------------------------------------------------------------|
+| endpoint   | string | Endpunkt der PROFFIX REST-API; z.B. ADR/Adresse,STU/Rapporte...                                            |
+| data       | array  | Daten (werden automatisch in JSON konvertiert)                                                             |
+| parameters | array  | Parameter gemäss [PROFFIX REST API Docs](http://www.proffix.net/Portals/0/content/REST%20API/index.html)   |
 
 ##### Get / Query
 
 ```php
+//Einfache Abfrage
 $pxrest =  new  Client(...)
 $adresse = $pxrest->get("ADR/Adresse/1")  //Legt Response als Objects in $adresse ab
 $adresse->Name //DEMO AG
+
+/Abfrage mit Parametern
+$pxrest =  new  Client(...)
+$adresse = $pxrest->get("ADR/Adresse",array('filter'=>'GeaendertAm>d\'2018-05-17 14:54:56\'','depth'=>1,'fields'=>'AdressNr,Name,GeaendertAm','limit'=>5))
+
 ```
 
 
@@ -125,6 +135,8 @@ $adresse = $pxrest->post("ADR/Adresse",$data)  //Sendet $data an Endpunkt ADR/Ad
 
 Ruft Infos vom Endpunkt **PRO/Info** ab.
 
+*Hinweis: Dieser Endpunkt / Abfrage blockiert keine Lizenz*
+
 ```php
 $pxrest =  new  Client(...)
 
@@ -138,6 +150,8 @@ $info2 = $pxrest->info();
 ##### Datenbank
 
 Ruft Infos vom Endpunkt **PRO/Datenbank** ab.
+
+*Hinweis: Dieser Endpunkt / Abfrage blockiert keine Lizenz*
 
 ```php
 $pxrest = new Client(...);
