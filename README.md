@@ -4,17 +4,16 @@
 
 
 ### Installation
-Der Wrapper kann entweder geklont via [Composer](https://getcomposer.org) oder als PHAR installiert werden.
+Der Wrapper kann entweder geklont oder via [Composer](https://getcomposer.org) installiert werden.
 
 ```php
+<<<<<<< HEAD
 composer require pitwch/rest-api-wrapper-proffix-php
+=======
+composer require pitwch/php-wrapper-proffix-restapi:dev-dev
+>>>>>>> Update Readme Response
 ```
 
-#### Features
-
-- Verwendet [phphttpclient](http://phphttpclient.com) für HTTP - Requests.
-- Schreibt Logfiles nach /log
-- Verwendet `PSR-0` autoload.
 
 #### Variante 1: Verwendung mit Composer (empfohlen)
 
@@ -26,22 +25,8 @@ require __DIR__ . '/vendor/autoload.php';
 
 use Pitwch\RestAPIWrapperProffix\Client;
 
-
 ```
 
-#### Variante 2: Verwendung als PHAR
-
-Den aktuellsten Build als PHAR gibt es jeweils hier:
-
-[Download als PHAR](https://github.com/pitwch/php-wrapper-proffix-restapi/releases/latest)
-
-**Wichtig:** Die Schlüsseldatei **PhpWrapperProffix.phar.pubkey** muss ebenfalls heruntergeladen werden und ins selbe Verzeichnis wie die  **PhpWrapperProffix.phar** kopiert werden!
-
-```php
-include("PhpWrapperProffix.phar");
-
-$client = new \RestAPIWrapperProffix\RestAPIWrapperProffix($config);
-```
 
 #### Konfiguration
 
@@ -140,6 +125,35 @@ $pxrest =  new  Client(...)
 $data = array("AdressNr"=>1,"Ort"=>"Zürich","PLZ"=>8000,"EMail"=>"test@test.com");
 $adresse = $pxrest->post("ADR/Adresse",$data)  //Sendet $data an Endpunkt ADR/Adresse
 ```
+
+
+##### Response / Antwort
+
+Alle Methoden geben die Response als Array bzw. NULL (z.B. bei DELETE)
+Bei Fehlern wird `HttpClientException` mit Rückmeldung der PROFFIX REST-API ausgegeben.
+
+Zudem lassen sich Zusatzinformationen zur Response wie folgt ausgeben:
+
+```php
+$pxrest =  new  Client(...)
+$adresse = $pxrest->get("ADR/Adresse")
+
+//Zusatzinformationen zum letzten Request
+$lastRequest = $pxrest->http->getRequest();
+$lastRequest->getUrl(); // Get requested URL (string).
+$lastRequest->getMethod(); // Get request method (string).
+$lastRequest->getParameters(); // Get request parameters (array).
+$lastRequest->getHeaders(); // Get request headers (array).
+$lastRequest->getBody(); // Get request body (JSON).
+
+
+//Zusatzinformationen zur letzten Response
+$lastResponse = $pxrest->http->getResponse();
+$lastResponse->getCode(); // Response code (int).
+$lastResponse->getHeaders(); // Response headers (array).
+$lastResponse->getBody(); // Response body (JSON).
+```
+
 
 #### Spezielle Endpunkte
 
