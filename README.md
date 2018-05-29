@@ -33,9 +33,9 @@ Die Konfiguration wird dem Client mitgegeben:
 | url              | https://myserver.ch:999                                                          | URL der REST-API **ohne pxapi/v2/**              |
 | apiDatabase      | DEMO                                                                             | Name der Datenbank                               |
 | apiUser          | USR                                                                              | Names des Benutzers                              |
-| apiPassword      | b62cce2fe18f7a156a9c719c57bebf0478a3d50f0d7bd18d9e8a40be2e663017                 | SHA256-Hash des Benutzerpasswortes               |
+| apiPassword      | b62cce2fe18f7a156a9c...0f0d7bd18d9e8a40be2e663017                                | SHA256-Hash des Benutzerpasswortes               |
 | apiModule        | ADR,STU                                                                          | Benötigte Module (mit Komma getrennt)            |
-| options          | array('key'=>'112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028') | Optionen (Details unter Optionen)                |
+| options          | array('key'=>'112a5a90...59028')                                                 | Optionen (Details unter Optionen)             |
 
 
 Beispiel:
