@@ -1,32 +1,4 @@
 {
-<<<<<<< HEAD
-    "name": "pitwch/rest-api-wrapper-proffix-php",
-    "description": "PHP Wrapper for PROFFIX REST API",
-    "homepage": "https://www.pitw.ch",
-    "license": "MIT",
-    "version": "1.0.1",
-    "minimum-stability": "dev",
-    "keywords": ["rest", "curl", "proffix", "restful", "api", "proffix rest api","php","wrapper"],
-    "require": {
-        "nategood/httpful": "0.2.*",
-        "monolog/monolog": "~1.23"
-    },
-    "authors": [
-        {
-            "name": "Simon Pedrett",
-            "email": "s.pedrett@pitw.ch"
-        }
-    ],
-    "autoload": {
-        "psr-0": {
-            "RestAPIWrapperProffix": "src/"
-        }
-     },
-    "bin" : ["src/RestAPIWrapperProffix"],
-    "require-dev": {
-        "phpunit/phpunit": "^4.8||^5.4",
-        "mockery/mockery": "^0.9.5"
-=======
   "name": "pitwch/rest-api-wrapper-proffix-php",
   "description": "PHP Wrapper for PROFFIX REST API",
   "type": "library",
@@ -36,7 +8,6 @@
     {
       "name": "Simon Pedrett",
       "email": "s.pedrett@pitw.ch"
->>>>>>> Fix Composer
     }
   ],
   "keywords": ["rest", "curl", "proffix", "restful", "api", "proffix rest api","php","wrapper"],

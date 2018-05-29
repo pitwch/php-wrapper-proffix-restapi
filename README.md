@@ -7,11 +7,7 @@
 Der Wrapper kann entweder geklont oder via [Composer](https://getcomposer.org) installiert werden.
 
 ```php
-<<<<<<< HEAD
-composer require pitwch/rest-api-wrapper-proffix-php
-=======
 composer require pitwch/php-wrapper-proffix-restapi:dev-dev
->>>>>>> Update Readme Response
 ```
 
 
