@@ -9,7 +9,7 @@ use Pitwch\RestAPIWrapperProffix\HttpClient\HttpClient;
 class Client
 {
 
-    const VERSION = '1.0.2';
+    const VERSION = '1.2.0';
 
 
     public $http;
