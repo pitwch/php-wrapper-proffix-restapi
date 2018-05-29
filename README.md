@@ -61,7 +61,7 @@ Optionen sind **fakultativ** und werden in der Regel nicht benötigt:
 
 | Option           | Beispiel                                                         | Bemerkung                                                      |
 |------------------|------------------------------------------------------------------|----------------------------------------------------------------|
-| key              | 112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028 | API-Key als SHA256 - Hash (kann auch direkt mitgegeben werden) |
+| key              | 112a5a90fe28b...242b10141254b4de59028 | API-Key als SHA256 - Hash (kann auch direkt mitgegeben werden) |
 | version          | v2                                                               | API-Version; Standard = v2                                     |
 | api_prefix       | /pxapi/                                                          | Prefix für die API; Standard = /pxapi/                         |
 | login_endpoint   | PRO/Login                                                        | Endpunkt für Login; Standard = PRO/Login                       |
