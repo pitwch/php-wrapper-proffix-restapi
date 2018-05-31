@@ -185,7 +185,9 @@ $datenbank1 = $pxrest->database('112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b
 //Variante 2: API - Key aus Options verwenden (sofern dort hinterlegt)
 $datenbank2 = $pxrest->database();
   ```
+### Ausnahmen / Spezialfälle
 
+* Endpunkte welche Leerschläge enthalten können (z.B. LAG/Artikel/PC 7/Bestand) müssen mit rawurlencode() genutzt werden
 
 ### Weitere Beispiele
 
