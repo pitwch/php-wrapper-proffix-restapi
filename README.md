@@ -1,7 +1,10 @@
-### PHP Wrapper für PROFFIX REST-API
-
 [![Build Status](https://travis-ci.org/pitwch/php-wrapper-proffix-restapi.svg?branch=master)](https://travis-ci.org/pitwch/php-wrapper-proffix-restapi)
 
+### PHP Wrapper für PROFFIX REST-API
+
+Ein effizienter PHP Wrapper für die PROFFIX REST-API
+
+![alt text](https://raw.githubusercontent.com/pitwch/php-wrapper-proffix-restapi/master/php-wrapper-proffix-rest.jpg "PHP Wrapper PROFFIX REST API")
 
 ### Installation
 Der Wrapper kann entweder geklont oder via [Composer](https://getcomposer.org) installiert werden.
