@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/pitwch/php-wrapper-proffix-restapi.svg?branch=master)](https://travis-ci.org/pitwch/php-wrapper-proffix-restapi)
 
-### PHP Wrapper für PROFFIX REST-API
+# PHP Wrapper für PROFFIX REST-API
 
 Ein effizienter PHP Wrapper für die PROFFIX REST-API
 
