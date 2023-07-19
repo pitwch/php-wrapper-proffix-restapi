@@ -1,13 +1,13 @@
 [![Build Status](https://travis-ci.org/pitwch/php-wrapper-proffix-restapi.svg?branch=master)](https://travis-ci.org/pitwch/php-wrapper-proffix-restapi)
 
-
+:warning:  :construction:
 ### Archiviert
 
-Dieses Repo wurde archiviert und nicht mehr weitergeführt. Für produktive Projekte mit der Proffix Rest-API empfehlen sich mittlerweile andere Sprachen oder Technologien.
-Als erpropte, ausgereifte und aktiv unterhaltene Alternativen empfehlen wird die von uns unterhaltenen Wrappers für die Proffix Rest-API auszuprobieren:
+Dieses Repo wurde **archiviert und wird nicht mehr weitergeführt** :file_folder:. Für** produktive Projekte mit der Proffix Rest-API** empfehlen sich mittlerweile andere Sprachen oder Technologien.
+Als **erpropte, ausgereifte und aktiv unterhaltene Alternativen** empfehlen wird die von uns unterhaltenen Wrappers für die Proffix Rest-API auszuprobieren:
 
-- [Golang Wrapper für die Proffix Rest-API](https://github.com/pitwch/go-wrapper-proffix-restapi)
-- [Dart Wrapper für die Proffix Rest-API](https://github.com/pitwch/dart_proffix_rest) zur Verfügung.
+- [Golang Wrapper für die Proffix Rest-API](https://github.com/pitwch/go-wrapper-proffix-restapi) :link:
+- [Dart Wrapper für die Proffix Rest-API](https://github.com/pitwch/dart_proffix_rest) :link:
 
 
 # PHP Wrapper für PROFFIX REST-API
