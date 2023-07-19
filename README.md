@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.org/pitwch/php-wrapper-proffix-restapi.svg?branch=master)](https://travis-ci.org/pitwch/php-wrapper-proffix-restapi)
 
 :warning:  :construction:
 ### Archiviert
