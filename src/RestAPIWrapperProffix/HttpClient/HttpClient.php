@@ -11,19 +11,67 @@ use Pitwch\RestAPIWrapperProffix\HttpClient\Response;
 
 
 
+/**
+ * Class HttpClient
+ *
+ * @package Pitwch\RestAPIWrapperProffix\HttpClient
+ */
 class HttpClient
 {
-    protected $ch;
+    /**
+     * @var string The Proffix API URL
+     */
     protected $url;
+
+    /**
+     * @var string The Proffix API Database
+     */
     protected $apiDatabase;
+
+    /**
+     * @var array The Proffix API Modules
+     */
     protected $apiModules;
+
+    /**
+     * @var string The Proffix API User
+     */
     protected $apiUser;
+
+    /**
+     * @var string The Proffix API Password
+     */
     protected $apiPassword;
+
+    /**
+     * @var Options The options for the client
+     */
     protected $options;
+
+    /**
+     * @var Request The request object
+     */
     public $request;
+
+    /**
+     * @var Response The response object
+     */
     public $response;
-    private $responseHeaders;
+
+    /**
+     * @var string The Proffix Session ID
+     */
     protected $pxSessionId;
+
+    /**
+     * @var resource|\CurlHandle The cURL handle
+     */
+    private $ch;
+
+    /**
+     * @var array The response headers
+     */
+    private $responseHeaders = [];
 
     /**
      * HttpClient constructor.
@@ -33,6 +81,18 @@ class HttpClient
      * @param $apiPassword
      * @param $apiModules
      * @param $options
+     * @throws HttpClientException
+     */
+    /**
+     * HttpClient constructor.
+     *
+     * @param string $url         The Proffix API URL
+     * @param string $apiDatabase The Proffix Database
+     * @param string $apiUser     The Proffix User
+     * @param string $apiPassword The Proffix Password
+     * @param array  $apiModules  The required Proffix Modules
+     * @param array  $options     Additional options
+     *
      * @throws HttpClientException
      */
     public function __construct($url, $apiDatabase, $apiUser, $apiPassword, $apiModules, $options)
@@ -47,12 +107,13 @@ class HttpClient
         $this->apiPassword = $apiPassword;
         $this->apiDatabase = $apiDatabase;
         $this->apiModules = $apiModules;
-        //$this->pxSessionId = $this->login();
 
     }
 
 
     /**
+     * Check if the connection is SSL
+     *
      * @return bool
      */
     protected function isSsl()
@@ -62,7 +123,10 @@ class HttpClient
 
 
     /**
-     * @param $url
+     * Build the API URL
+     *
+     * @param string $url
+     *
      * @return string
      */
     protected function buildApiUrl($url)
@@ -73,8 +137,11 @@ class HttpClient
 
 
     /**
-     * @param $url
-     * @param array $parameters
+     * Build the URL with query parameters
+     *
+     * @param string $url
+     * @param array  $parameters
+     *
      * @return string
      */
     protected function buildUrlQuery($url, $parameters = [])
@@ -102,20 +169,25 @@ class HttpClient
     }
 
     /**
+     * Build the JSON for the login request
+     *
      * @return array
      */
     protected function buildLoginJson()
     {
-        $loginJson = Array("Benutzer" => $this->apiUser,
-            "Passwort" => $this->apiPassword,
-            "Datenbank" => Array("Name" => $this->apiDatabase),
-            "Module" => explode(",", $this->apiModules)
-        );
+        $loginJson = [
+            'Benutzer' => $this->apiUser,
+            'Passwort' => $this->apiPassword,
+            'Datenbank' => ['Name' => $this->apiDatabase],
+            'Module' => is_array($this->apiModules) ? $this->apiModules : explode(',', $this->apiModules)
+        ];
 
         return $loginJson;
     }
 
     /**
+     * Build the login URL
+     *
      * @return string
      */
     protected function buildLoginUrl()
@@ -125,99 +197,83 @@ class HttpClient
     }
 
     /**
-     * @return mixed|string
+     * Login to Proffix
+     *
+     * @return string The PxSessionId
+     *
+     * @throws HttpClientException
      */
     protected function login()
     {
-        $headers = [];
-
-
-        $headerarray = array("Cache-Control: no-cache","Content-Type: application/json","PxSessionId:" . $this->pxSessionId);
-
-
-
+        $this->initCurl();
 
         $body = \json_encode($this->buildLoginJson());
-        $curl = curl_init();
+        $headers = [
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($body)
+        ];
 
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => $this->buildLoginUrl(),
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => $this->options->getTimeout(),
-            CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HEADER => true,
-            CURLOPT_POSTFIELDS => $body,
-            CURLOPT_HTTPHEADER => $headerarray,
-        ));
+        curl_setopt($this->ch, CURLOPT_URL, $this->buildLoginUrl());
+        curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($this->ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($this->ch, CURLOPT_POSTFIELDS, $body);
+        curl_setopt($this->ch, CURLOPT_HEADER, true);
 
-        $response = curl_exec($curl);
+        $response = curl_exec($this->ch);
 
-        $err = curl_error($curl);
-
-        curl_close($curl);
-
-        if ($err) {
-            return "cURL Error #:" . $err;
-        } else {
-            $lines = \explode("\n", $response);
-            $lines = \array_filter($lines, 'trim');
-
-            foreach ($lines as $index => $line) {
-                // Remove HTTP/xxx params.
-                if (strpos($line, ': ') === false) {
-                    continue;
-                }
-
-                list($key, $value) = \explode(': ', $line);
-
-                $headers[$key] = isset($headers[$key]) ? $headers[$key] . ', ' . trim($value) : trim($value);
-            }
-            return $headers['PxSessionId'];
+        if (curl_errno($this->ch)) {
+            throw new HttpClientException('cURL error: ' . curl_error($this->ch), curl_errno($this->ch), $this->request, $this->response);
         }
 
+        $headerSize = curl_getinfo($this->ch, CURLINFO_HEADER_SIZE);
+        $header = substr($response, 0, $headerSize);
 
+        $this->pxSessionId = $this->extractSessionId($header);
+
+        if (empty($this->pxSessionId)) {
+            throw new HttpClientException('Failed to retrieve PxSessionId from login response.', 401, $this->request, $this->response);
+        }
+
+        return $this->pxSessionId;
     }
 
     /**
-     * @return bool|string
+     * Logout from Proffix
+     *
+     * @return bool
+     *
+     * @throws HttpClientException
      */
     protected function logout()
     {
+        if (empty($this->pxSessionId)) {
+            return true;
+        }
 
+        $this->initCurl();
 
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => $this->buildLoginUrl(),
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => $this->options->getTimeout(),
-            CURLOPT_CUSTOMREQUEST => "DELETE",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HEADER => true,
-            CURLOPT_HTTPHEADER => array(
-                "Cache-Control: no-cache",
-                "Content-Type: application/json",
-                "PxSessionId:" . $this->pxSessionId,
-            ),
-        ));
+        $headers = [
+            'PxSessionId: ' . $this->pxSessionId
+        ];
 
-        $response = curl_exec($curl);
+        curl_setopt($this->ch, CURLOPT_URL, $this->buildLoginUrl());
+        curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+        curl_setopt($this->ch, CURLOPT_HTTPHEADER, $headers);
 
-        $err = curl_error($curl);
+        curl_exec($this->ch);
 
-        curl_close($curl);
+        if (curl_errno($this->ch)) {
+            throw new HttpClientException('cURL error on logout: ' . curl_error($this->ch), curl_errno($this->ch), $this->request, $this->response);
+        }
 
-        if ($err) {
-            return "cURL Error #:" . $err;
-        } else return true;
+        $this->pxSessionId = null;
+        return true;
     }
 
     /**
-     * @param $method
+     * Set the HTTP method for the cURL request
+     *
+     * @param string $method
      */
     protected function setupMethod($method)
     {
@@ -229,9 +285,13 @@ class HttpClient
     }
 
     /**
+     * Get the request headers
+     *
      * @param bool $sendData
+     *
      * @return array
-     * @throws \Pitwch\RestAPIWrapperProffix\HttpClient\HttpClientException
+     *
+     * @throws HttpClientException
      */
     protected function getRequestHeaders($sendData = false)
     {
@@ -249,28 +309,25 @@ class HttpClient
     }
 
     /**
-     * @param $endpoint
-     * @param $method
-     * @param array $data
-     * @param array $parameters
-     * @return mixed
-     * @throws \Pitwch\RestAPIWrapperProffix\HttpClient\HttpClientException
+     * Create the request object
+     *
+     * @param string $endpoint
+     * @param string $method
+     * @param array  $data
+     * @param array  $parameters
+     *
+     * @return Request
+     *
+     * @throws HttpClientException
      */
-    protected function createRequest($endpoint, $method, $data = [], $parameters = [],$nologin = false)
+    protected function createRequest($endpoint, $method, $data = [], $parameters = [])
     {
         $body = '';
         $url = $this->url . $endpoint;
         $hasData = !empty($data);
 
-
-        // Setup method.
-        $this->setupMethod($method);
-
-
-        // Include post fields.
         if ($hasData) {
             $body = \json_encode($data);
-            \curl_setopt($this->ch, CURLOPT_POSTFIELDS, $body);
         }
 
         $this->request = new Request(
@@ -280,16 +337,19 @@ class HttpClient
             $this->getRequestHeaders($hasData),
             $body
         );
-        return $this->getRequest();
+
+        return $this->request;
     }
 
     /**
+     * Get the response headers
+     *
      * @return array
      */
     protected function getResponseHeaders()
     {
         $headers = [];
-        $lines = \explode("\n", $this->responseHeaders);
+        $lines = explode("\n", (string)$this->responseHeaders);
         $lines = \array_filter($lines, 'trim');
 
         foreach ($lines as $index => $line) {
@@ -307,10 +367,12 @@ class HttpClient
     }
 
     /**
-     * @return mixed
-     * @throws \Pitwch\RestAPIWrapperProffix\HttpClient\HttpClientException
+     * Create the response object
+     *
+     * @return Response
+     *
+     * @throws HttpClientException
      */
-
     protected function createResponse()
     {
 
@@ -333,7 +395,7 @@ class HttpClient
     }
 
     /**
-     *
+     * Set the default cURL settings
      */
     protected function setDefaultCurlSettings()
     {
@@ -356,42 +418,48 @@ class HttpClient
     }
 
     /**
-     * @param $parsedResponse
+     * Check for errors in the response
+     *
+     * @param mixed $parsedResponse
+     *
      * @throws HttpClientException
      */
     protected function lookForErrors($parsedResponse)
     {
 
         // Any non-200/201/202/204 response code indicates an error.
-        if (!\in_array($this->response->getCode(), ['200', '201', '202','204'])) {
-            $errors = isset($parsedResponse->errors) ? $parsedResponse->errors : $parsedResponse;
-            if (($errors->Fields)) {
-
-                $errorMessage = print_r($errors);
-                $errorCode = $this->response->getCode();
-            } else {
-                $errorMessage = $errors->Message;
-                $errorCode = $this->response->getCode();
+        if (!in_array($this->response->getCode(), ['200', '201', '202', '204'])) {
+            $errorMessage = 'An unknown error occurred';
+            if (isset($parsedResponse->Message)) {
+                $errorMessage = $parsedResponse->Message;
+            } elseif (is_string($parsedResponse)) {
+                $errorMessage = $parsedResponse;
             }
 
             throw new HttpClientException(
-                \sprintf('Message: %s Code: %s', $errorMessage, $errorCode),
+                sprintf('Error: %s', $errorMessage),
                 $this->response->getCode(),
                 $this->request,
                 $this->response
             );
-
         }
     }
-    //TODO
-    protected function parsePxErrorMessage($errors){
+    /**
+     * @param $errors
+     * @return array
+     */
+    protected function parsePxErrorMessage($errors)
+    {
         foreach ($errors as $error){
             $clean[] = $error;
         }
     }
     /**
+     * Process the response
+     *
      * @return mixed
-     * @throws \Pitwch\RestAPIWrapperProffix\HttpClient\HttpClientException
+     *
+     * @throws HttpClientException
      */
     protected function processResponse()
     {
@@ -418,38 +486,36 @@ class HttpClient
      * @return mixed
      * @throws HttpClientException
      */
-    public function request($endpoint, $method, $data = [], $parameters = [],$login = true)
+    public function request($endpoint, $method, $data = [], $parameters = [], $login = true)
     {
-        //Login
-        $this->pxSessionId = $login ? $this->login() : '';
-        // Initialize cURL.
-        $this->ch = \curl_init();
-
-        // Set request args.
-        $request = $this->createRequest($endpoint, $method, $data, $parameters);
-
-        // Default cURL settings.
-        $this->setDefaultCurlSettings();
-
-        // Get response.
-        $response = $this->createResponse();
-
-        //Logout
-        $login ? $this->logout($this->pxSessionId) : '';
-
-        // Check for cURL errors.
-        if (\curl_errno($this->ch)) {
-            throw new HttpClientException('cURL Error: ' . \curl_error($this->ch), 0, $request, $response);
+        if ($login && empty($this->pxSessionId)) {
+            $this->login();
         }
 
-        \curl_close($this->ch);
+        $this->initCurl();
+
+        $this->createRequest($endpoint, $method, $data, $parameters);
+        $this->setDefaultCurlSettings();
+
+        // Setup method.
+        $this->setupMethod($method);
+
+        // Include post fields.
+        if (!empty($data)) {
+            $body = \json_encode($data);
+            \curl_setopt($this->ch, CURLOPT_POSTFIELDS, $body);
+        }
+
+        $this->createResponse();
+        $this->lookForErrors($this->processResponse());
 
         return $this->processResponse();
     }
 
-
     /**
-     * @return mixed
+     * Get the request object
+     *
+     * @return Request
      */
     public function getRequest()
     {
@@ -457,11 +523,53 @@ class HttpClient
     }
 
     /**
-     * @return mixed
+     * Get the response object
+     *
+     * @return Response
      */
     public function getResponse()
     {
         return $this->response;
     }
 
+    /**
+     * Initialize the cURL handle
+     */
+    private function initCurl()
+    {
+        if (!$this->ch) {
+            $this->ch = curl_init();
+        }
+    }
+
+    /**
+     * Extract the session ID from the response headers
+     *
+     * @param string $header
+     *
+     * @return string|null
+     */
+    private function extractSessionId($header)
+    {
+        foreach (explode("\r\n", $header) as $line) {
+            if (strpos($line, 'PxSessionId:') === 0) {
+                return trim(substr($line, strlen('PxSessionId:')));
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Destructor
+     */
+    public function __destruct()
+    {
+        if ($this->ch) {
+            if(!empty($this->pxSessionId)){
+                $this->logout();
+            }
+            curl_close($this->ch);
+        }
+    }
 }

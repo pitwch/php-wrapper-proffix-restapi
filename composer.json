@@ -12,13 +12,13 @@
   ],
   "keywords": ["rest", "curl", "proffix", "restful", "api", "proffix rest api","php","wrapper"],
   "require": {
-    "php": ">= 5.6.0",
+    "php": "^8.2",
     "ext-curl": "*",
     "ext-json": "*"
   },
   "require-dev": {
-    "phpunit/phpunit": "*",
-    "squizlabs/php_codesniffer": "3.*"
+    "phpunit/phpunit": "^11.0",
+    "squizlabs/php_codesniffer": "^3.9"
   },
   "autoload": {
     "psr-4": {
