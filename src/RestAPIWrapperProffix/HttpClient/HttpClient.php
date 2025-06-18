@@ -205,19 +205,23 @@ class HttpClient
      */
     protected function login()
     {
-        $this->initCurl();
+        // IMPORTANT: login() now uses the cURL handle initialized by request().
+        // It will temporarily set its own options on this handle.
+        // Login has specific cURL needs, especially CURLOPT_HEADER = true.
 
         $body = \json_encode($this->buildLoginJson());
-        $headers = [
+        $loginHeaders = [
             'Content-Type: application/json',
-            'Content-Length: ' . strlen($body)
+            'Content-Length: ' . strlen($body),
+            'Accept: application/json' // Good practice to include Accept for login too
         ];
 
-        curl_setopt($this->ch, CURLOPT_URL, $this->buildLoginUrl());
-        curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, 'POST');
-        curl_setopt($this->ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($this->ch, CURLOPT_POSTFIELDS, $body);
-        curl_setopt($this->ch, CURLOPT_HEADER, true);
+        \curl_setopt($this->ch, CURLOPT_URL, $this->buildLoginUrl());
+        \curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, 'POST');
+        \curl_setopt($this->ch, CURLOPT_HTTPHEADER, $loginHeaders);
+        \curl_setopt($this->ch, CURLOPT_POSTFIELDS, $body);
+        \curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true); // Make sure login also returns response
+        \curl_setopt($this->ch, CURLOPT_HEADER, true); // Crucial for extracting PxSessionId from login response headers
 
         $response = curl_exec($this->ch);
 
@@ -229,7 +233,7 @@ class HttpClient
         $header = substr($response, 0, $headerSize);
 
         $this->pxSessionId = $this->extractSessionId($header);
-
+        
         if (empty($this->pxSessionId)) {
             throw new HttpClientException('Failed to retrieve PxSessionId from login response.', 401, $this->request, $this->response);
         }
@@ -277,11 +281,19 @@ class HttpClient
      */
     protected function setupMethod($method)
     {
-        if ('POST' == $method) {
+        // Reset method-specific options first to ensure a clean state
+        \curl_setopt($this->ch, CURLOPT_HTTPGET, false);
+        \curl_setopt($this->ch, CURLOPT_POST, false);
+        \curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, null); // Reset custom request
+
+        if ('GET' == $method) {
+            \curl_setopt($this->ch, CURLOPT_HTTPGET, true);
+        } elseif ('POST' == $method) {
             \curl_setopt($this->ch, CURLOPT_POST, true);
         } elseif (\in_array($method, ['PUT', 'DELETE', 'OPTIONS'])) {
             \curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, $method);
         }
+        // For POST, PUT, DELETE with body, CURLOPT_POSTFIELDS will be set later in request()
     }
 
     /**
@@ -297,9 +309,12 @@ class HttpClient
     {
         $headers = [
             'Accept' => 'application/json',
-            'User-Agent' => $this->options->userAgent() . '/' . Client::VERSION,
-            'PxSessionId' => $this->pxSessionId
+                        'User-Agent' => $this->options->userAgent() . '/' . Options::VERSION,
         ];
+
+        if (!empty($this->pxSessionId)) {
+            $headers['PxSessionId'] = $this->pxSessionId;
+        }
 
         if ($sendData) {
             $headers['Content-Type'] = 'application/json;charset=utf-8';
@@ -413,7 +428,8 @@ class HttpClient
         \curl_setopt($this->ch, CURLOPT_CONNECTTIMEOUT, $timeout);
         \curl_setopt($this->ch, CURLOPT_TIMEOUT, $timeout);
         \curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
-        \curl_setopt($this->ch, CURLOPT_HTTPHEADER, $this->request->getRawHeaders());
+        \curl_setopt($this->ch, CURLOPT_HEADER, false); // Default for API calls: no headers in body
+        // Note: CURLOPT_HTTPHEADER is NOT set here anymore. It's set in request() method.
         \curl_setopt($this->ch, CURLOPT_URL, $this->request->getUrl());
     }
 
@@ -426,14 +442,29 @@ class HttpClient
      */
     protected function lookForErrors($parsedResponse)
     {
-
         // Any non-200/201/202/204 response code indicates an error.
         if (!in_array($this->response->getCode(), ['200', '201', '202', '204'])) {
             $errorMessage = 'An unknown error occurred';
+
             if (isset($parsedResponse->Message)) {
                 $errorMessage = $parsedResponse->Message;
             } elseif (is_string($parsedResponse)) {
                 $errorMessage = $parsedResponse;
+            }
+
+            if (isset($parsedResponse->Fields) && is_array($parsedResponse->Fields)) {
+                $fieldErrors = [];
+                foreach ($parsedResponse->Fields as $field) {
+                    $fieldErrors[] = sprintf(
+                        'Field: %s (%s) - %s',
+                        $field->Name ?? 'N/A',
+                        $field->Reason ?? 'N/A',
+                        $field->Message ?? 'N/A'
+                    );
+                }
+                if (!empty($fieldErrors)) {
+                    $errorMessage .= ': ' . implode('; ', $fieldErrors);
+                }
             }
 
             throw new HttpClientException(
@@ -488,14 +519,33 @@ class HttpClient
      */
     public function request($endpoint, $method, $data = [], $parameters = [], $login = true)
     {
-        if ($login && empty($this->pxSessionId)) {
-            $this->login();
-        }
-
         $this->initCurl();
 
+        // Create the request object for the main operation.
+        // This will be available if login() throws an exception.
         $this->createRequest($endpoint, $method, $data, $parameters);
-        $this->setDefaultCurlSettings();
+
+        // If login is required, it's performed first. 
+        // login() will use the current $this->ch, temporarily setting options for the login call.
+        if ($login && empty($this->pxSessionId)) {
+            $this->login(); // This populates $this->pxSessionId if successful
+        }
+
+        // Now, apply default cURL settings for the MAIN request.
+        // This sets the main request's URL (from $this->request), CURLOPT_HEADER=false, etc.,
+        // effectively overriding any temporary settings login() might have applied to $this->ch.
+        $this->setDefaultCurlSettings(); 
+
+        // Clear any headers from a potential previous login call on the same handle
+        \curl_setopt($this->ch, CURLOPT_HTTPHEADER, []);
+
+        // Now, get the final headers for this specific request (which will include PxSessionId if login occurred)
+        $finalRequestHeaders = $this->getRequestHeaders(!empty($data));
+        $rawFinalRequestHeaders = [];
+        foreach ($finalRequestHeaders as $key => $value) {
+            $rawFinalRequestHeaders[] = $key . ': ' . $value;
+        }
+        \curl_setopt($this->ch, CURLOPT_HTTPHEADER, $rawFinalRequestHeaders); // Set the final headers for the main API call
 
         // Setup method.
         $this->setupMethod($method);
@@ -507,9 +557,11 @@ class HttpClient
         }
 
         $this->createResponse();
-        $this->lookForErrors($this->processResponse());
+        // Process response once and store it
+        $processedResponse = $this->processResponse();
+        $this->lookForErrors($processedResponse);
 
-        return $this->processResponse();
+        return $processedResponse;
     }
 
     /**

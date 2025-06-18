@@ -1,16 +1,23 @@
-<phpunit bootstrap="./bootstrap-server.php">
-    <testsuites>
-        <testsuite name="Httpful">
-            <directory>.</directory>
-        </testsuite>
-    </testsuites>
+<phpunit bootstrap="../bootstrap.php" colors="true">
     <php>
+        <env name="PROFFIX_API_URL" value="https://work.pitw.ch:1500"/>
+        <env name="PROFFIX_API_USERNAME" value="TM"/>
+        <env name="PROFFIX_API_PASSWORD" value="03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"/>
+        <env name="PROFFIX_API_DATABASE" value="DEMODB"/>
+        <env name="PROFFIX_API_MODULES" value="VOL"/>
         <const name="WEB_SERVER_HOST" value="localhost" />
         <const name="WEB_SERVER_PORT" value="1349" />
         <const name="WEB_SERVER_DOCROOT" value="./static" />
-	<env name="http_proxy" value="" />
+        <env name="http_proxy" value="" />
     </php>
+    <testsuites>
+        <testsuite name="Integration">
+            <directory>./Integration</directory>
+        </testsuite>
+    </testsuites>
+    <!--
     <logging>
         <log type="coverage-text" target="php://stdout" showUncoveredFiles="false"/>
     </logging>
+    -->
 </phpunit>
