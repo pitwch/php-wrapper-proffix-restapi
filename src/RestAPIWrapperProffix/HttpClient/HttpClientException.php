@@ -22,7 +22,7 @@ class HttpClientException extends \Exception
     /**
      * @var Response
      */
-    private $response;
+    private ?Response $response;
 
 
     /**
@@ -33,7 +33,7 @@ class HttpClientException extends \Exception
      * @param Request  $request
      * @param Response $response
      */
-    public function __construct($message, $code, Request $request, Response $response)
+    public function __construct($message, $code, Request $request, ?Response $response)
     {
         parent::__construct($message, $code);
 

@@ -11,7 +11,7 @@ namespace Pitwch\RestAPIWrapperProffix\HttpClient;
 class Options
 {
 
-    const VERSION = 'v2';
+    const VERSION = 'V4';
 
     const TIMEOUT = 15;
 

@@ -16,4 +16,5 @@ PhpWrapperProffix.phar
 box.json
 box.phar
 manifest.json
-phpunit.xml
+.cache
+.phpunit.cache
