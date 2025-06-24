@@ -235,7 +235,13 @@ class HttpClient
         $this->pxSessionId = $this->extractSessionId($header);
         
         if (empty($this->pxSessionId)) {
-            throw new HttpClientException('Failed to retrieve PxSessionId from login response.', 401, $this->request, $this->response);
+            $responseBody = substr($response, $headerSize);
+            $parsedBody = json_decode($responseBody);
+            $errorMessage = 'Failed to retrieve PxSessionId from login response.';
+            if (isset($parsedBody->Message)) {
+                $errorMessage .= ' Proffix API Error: ' . $parsedBody->Message;
+            }
+            throw new HttpClientException($errorMessage, 401, $this->request, $this->response);
         }
 
         return $this->pxSessionId;
@@ -390,23 +396,7 @@ class HttpClient
      */
     protected function createResponse()
     {
-
-        // Set response headers.
-        $this->responseHeaders = '';
-        \curl_setopt($this->ch, CURLOPT_HEADERFUNCTION, function ($_, $headers) {
-            $this->responseHeaders .= $headers;
-            return \strlen($headers);
-        });
-
-        // Get response data.
-        $body = \curl_exec($this->ch);
-        $code = \curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
-        $headers = $this->getResponseHeaders();
-
-        // Register response.
-        $this->response = new Response($code, $headers, $body);
-
-        return $this->getResponse();
+        $this->response = new Response();
     }
 
     /**
@@ -509,43 +499,58 @@ class HttpClient
         return $parsedResponse;
     }
 
+
+
+    public function request($endpoint, $method, $data = [], $parameters = [], $login = true)
+    {
+        $this->prepareRequest($endpoint, $method, $data, $parameters, $login);
+        return $this->executeCurl(true);
+    }
+
     /**
      * @param $endpoint
      * @param $method
      * @param array $data
      * @param array $parameters
-     * @return mixed
+     * @return Response
      * @throws HttpClientException
      */
-    public function request($endpoint, $method, $data = [], $parameters = [], $login = true)
+    public function rawRequest($endpoint, $method, $data = [], $parameters = []): Response
+    {
+        $this->prepareRequest($endpoint, $method, $data, $parameters, true); // Login is always required for raw requests
+        return $this->executeCurl(false);
+    }
+
+    /**
+     * @param $endpoint
+     * @param $method
+     * @param $data
+     * @param $parameters
+     * @param $login
+     * @throws HttpClientException
+     */
+    private function prepareRequest($endpoint, $method, $data, $parameters, $login)
     {
         $this->initCurl();
 
         // Create the request object for the main operation.
-        // This will be available if login() throws an exception.
         $this->createRequest($endpoint, $method, $data, $parameters);
 
-        // If login is required, it's performed first. 
-        // login() will use the current $this->ch, temporarily setting options for the login call.
+        // If login is required, it's performed first.
         if ($login && empty($this->pxSessionId)) {
-            $this->login(); // This populates $this->pxSessionId if successful
+            $this->login();
         }
 
-        // Now, apply default cURL settings for the MAIN request.
-        // This sets the main request's URL (from $this->request), CURLOPT_HEADER=false, etc.,
-        // effectively overriding any temporary settings login() might have applied to $this->ch.
-        $this->setDefaultCurlSettings(); 
+        // Apply default cURL settings for the MAIN request.
+        $this->setDefaultCurlSettings();
 
-        // Clear any headers from a potential previous login call on the same handle
-        \curl_setopt($this->ch, CURLOPT_HTTPHEADER, []);
-
-        // Now, get the final headers for this specific request (which will include PxSessionId if login occurred)
+        // Get the final headers for this specific request (which will include PxSessionId if login occurred)
         $finalRequestHeaders = $this->getRequestHeaders(!empty($data));
         $rawFinalRequestHeaders = [];
         foreach ($finalRequestHeaders as $key => $value) {
             $rawFinalRequestHeaders[] = $key . ': ' . $value;
         }
-        \curl_setopt($this->ch, CURLOPT_HTTPHEADER, $rawFinalRequestHeaders); // Set the final headers for the main API call
+        \curl_setopt($this->ch, CURLOPT_HTTPHEADER, $rawFinalRequestHeaders);
 
         // Setup method.
         $this->setupMethod($method);
@@ -557,11 +562,56 @@ class HttpClient
         }
 
         $this->createResponse();
-        // Process response once and store it
-        $processedResponse = $this->processResponse();
-        $this->lookForErrors($processedResponse);
+    }
 
-        return $processedResponse;
+    /**
+     * @param bool $processJson
+     * @return mixed|Response
+     * @throws HttpClientException
+     */
+    private function executeCurl(bool $processJson = true)
+    {
+        // Set response headers callback
+        $this->responseHeaders = '';
+        \curl_setopt($this->ch, CURLOPT_HEADERFUNCTION, function ($curl, $header) {
+            $this->responseHeaders .= $header;
+            return strlen($header);
+        });
+
+        $body = curl_exec($this->ch);
+
+        if (curl_errno($this->ch)) {
+            throw new HttpClientException('cURL error: ' . curl_error($this->ch), curl_errno($this->ch), $this->request, $this->response);
+        }
+
+        $this->response->setBody($body);
+        $this->response->setCode(curl_getinfo($this->ch, CURLINFO_HTTP_CODE));
+        $this->response->setHeaders($this->getResponseHeaders());
+
+        if ($processJson) {
+            // processResponse will decode and also call lookForErrors
+            return $this->processResponse();
+        }
+
+        // For raw requests, we only check for non-2xx status codes.
+        if (!in_array($this->response->getCode(), ['200', '201', '202', '204'])) {
+             // Try to parse the body as JSON to get a detailed error message
+            $parsedError = \json_decode($this->response->getBody());
+            if (JSON_ERROR_NONE === json_last_error()) {
+                // It's a JSON error response, pass it to lookForErrors
+                 $this->lookForErrors($parsedError);
+            } else {
+                // Not a JSON error, create a generic exception
+                throw new HttpClientException(
+                    'HTTP Error ' . $this->response->getCode(),
+                    $this->response->getCode(),
+                    $this->request,
+                    $this->response
+                );
+            }
+        }
+
+        return $this->response;
     }
 
     /**
