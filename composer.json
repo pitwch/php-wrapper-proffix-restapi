@@ -2,7 +2,7 @@
   "name": "pitwch/rest-api-wrapper-proffix-php",
   "description": "PHP Wrapper for PROFFIX REST API",
   "type": "library",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "homepage": "https://www.pitw.ch",
   "license": "MIT",
   "authors": [

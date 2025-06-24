@@ -155,4 +155,27 @@ class ClientIntegrationTest extends TestCase
         $getResponse = $this->client->get('ADR/Adresse/' . $addressId);
                 $this->assertTrue($getResponse->Geloescht);
     }
+
+    public function testCanGetList(): void
+    {
+        try {
+            $response = $this->client->getList(1029); // Using a known list ID from Go tests
+
+            $this->assertEquals(200, $response->getCode());
+            $this->assertNotEmpty($response->getBody());
+            $headers = $response->getHeaders();
+            $this->assertArrayHasKey('Content-Type', $headers);
+            $this->assertEquals('application/pdf', $headers['Content-Type']);
+
+        } catch (HttpClientException $e) {
+            // The list might not exist in all test environments. If so, skip the test.
+            // A 404 on the final GET will be caught here.
+            if ($e->getCode() === 404) {
+                $this->markTestSkipped('List with ID 1029 not found or failed to generate. Skipping getList test.');
+            } else {
+                // Re-throw other exceptions
+                throw $e;
+            }
+        }
+    }
 }
