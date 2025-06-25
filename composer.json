@@ -2,7 +2,7 @@
   "name": "pitwch/rest-api-wrapper-proffix-php",
   "description": "PHP Wrapper for PROFFIX REST API",
   "type": "library",
-  "version": "1.9.1",
+  "version": "1.9.2",
   "homepage": "https://www.pitw.ch",
   "license": "MIT",
   "authors": [
@@ -28,8 +28,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Pitwch\\RestAPIWrapperProffix\\Tests\\": "tests/RestAPIWrapperProffix/",
-      "Pitwch\\RestAPIWrapperProffix\\Tests\\Integration\\": "tests/Integration/"
+      "Pitwch\\RestAPIWrapperProffix\\Tests\\": "tests/"
     }
   }
 }

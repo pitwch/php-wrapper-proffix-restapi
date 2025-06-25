@@ -64,9 +64,12 @@ class Client
      */
     public function getList(int $listenr, array $body = []): \Pitwch\RestAPIWrapperProffix\HttpClient\Response
     {
+        // Per API documentation, a POST to /generieren requires a body, even if empty.
+        // It must be an empty JSON object `{}`.
+        $requestBody = empty($body) ? (object)[] : $body;
+
         // First, send a POST request to generate the list file.
-        // The `post` method automatically handles JSON decoding and error checking.
-        $this->post('PRO/Liste/' . $listenr . '/generieren', $body);
+        $this->post('PRO/Liste/' . $listenr . '/generieren', $requestBody);
 
         // After a successful request, the HttpClient holds the last response.
         $postResponse = $this->getHttpClient()->getResponse();
