@@ -19,11 +19,13 @@ class ClientIntegrationTest extends TestCase
         $this->client = new Client(
             $_ENV['PROFFIX_API_URL'],
             $_ENV['PROFFIX_API_DATABASE'],
-            $_ENV['PROFFIX_API_USER'],
+            $_ENV['PROFFIX_API_USERNAME'],
             $_ENV['PROFFIX_API_PASSWORD'],
-            $_ENV['PROFFIX_API_MODULES']
+            $_ENV['PROFFIX_API_MODULES'],
+            []
         );
     }
+
 
     public function testCanGetAddressList(): void
     {
@@ -158,8 +160,22 @@ class ClientIntegrationTest extends TestCase
 
     public function testCanGetList(): void
     {
+        // 1. Find the list number dynamically
+        $listName = 'ADR_Adressliste.repx';
+        $listInfo = $this->client->get('PRO/Liste', [
+            'Filter' => "Name=='{$listName}'",
+            'limit' => 1,
+            'fields' => 'ListeNr'
+        ]);
+
+        if (empty($listInfo) || !isset($listInfo[0]->ListeNr)) {
+            $this->markTestSkipped("List '{$listName}' not found. Skipping getList test.");
+        }
+        $listeNr = $listInfo[0]->ListeNr;
+
         try {
-            $response = $this->client->getList(1029); // Using a known list ID from Go tests
+            // 2. Get the list using the found ID
+            $response = $this->client->getList($listeNr);
 
             $this->assertEquals(200, $response->getCode());
             $this->assertNotEmpty($response->getBody());
@@ -171,7 +187,7 @@ class ClientIntegrationTest extends TestCase
             // The list might not exist in all test environments. If so, skip the test.
             // A 404 on the final GET will be caught here.
             if ($e->getCode() === 404) {
-                $this->markTestSkipped('List with ID 1029 not found or failed to generate. Skipping getList test.');
+                $this->markTestSkipped("List with ID {$listeNr} not found or failed to generate. Skipping getList test.");
             } else {
                 // Re-throw other exceptions
                 throw $e;
