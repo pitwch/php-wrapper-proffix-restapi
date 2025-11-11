@@ -194,4 +194,80 @@ class ClientIntegrationTest extends TestCase
             }
         }
     }
+
+    public function testSessionCachingWorks(): void
+    {
+        // Create a new client with session caching enabled (default)
+        $client1 = new Client(
+            $_ENV['PROFFIX_API_URL'],
+            $_ENV['PROFFIX_API_DATABASE'],
+            $_ENV['PROFFIX_API_USERNAME'],
+            $_ENV['PROFFIX_API_PASSWORD'],
+            $_ENV['PROFFIX_API_MODULES'],
+            ['enable_session_caching' => true]
+        );
+
+        // Make a request to trigger login and cache the session
+        $result1 = $client1->get('ADR/Adresse', ['limit' => 1]);
+        $this->assertNotEmpty($result1);
+
+        // Get the session ID from the first client
+        $httpClient1 = $client1->getHttpClient();
+        $reflection = new \ReflectionClass($httpClient1);
+        $property = $reflection->getProperty('pxSessionId');
+        $property->setAccessible(true);
+        $sessionId1 = $property->getValue($httpClient1);
+        $this->assertNotEmpty($sessionId1, 'Session ID should be set after first request');
+
+        // Create a second client with the same credentials
+        // It should load the cached session instead of logging in again
+        $client2 = new Client(
+            $_ENV['PROFFIX_API_URL'],
+            $_ENV['PROFFIX_API_DATABASE'],
+            $_ENV['PROFFIX_API_USERNAME'],
+            $_ENV['PROFFIX_API_PASSWORD'],
+            $_ENV['PROFFIX_API_MODULES'],
+            ['enable_session_caching' => true]
+        );
+
+        // Make a request with the second client
+        $result2 = $client2->get('ADR/Adresse', ['limit' => 1]);
+        $this->assertNotEmpty($result2);
+
+        // Get the session ID from the second client
+        $httpClient2 = $client2->getHttpClient();
+        $property2 = $reflection->getProperty('pxSessionId');
+        $property2->setAccessible(true);
+        $sessionId2 = $property2->getValue($httpClient2);
+
+        // The session IDs should be the same (loaded from cache)
+        $this->assertEquals($sessionId1, $sessionId2, 'Second client should use cached session');
+    }
+
+    public function testSessionCachingCanBeDisabled(): void
+    {
+        // Create a client with session caching disabled
+        $client = new Client(
+            $_ENV['PROFFIX_API_URL'],
+            $_ENV['PROFFIX_API_DATABASE'],
+            $_ENV['PROFFIX_API_USERNAME'],
+            $_ENV['PROFFIX_API_PASSWORD'],
+            $_ENV['PROFFIX_API_MODULES'],
+            ['enable_session_caching' => false]
+        );
+
+        // Make a request
+        $result = $client->get('ADR/Adresse', ['limit' => 1]);
+        $this->assertNotEmpty($result);
+
+        // Verify that session caching is disabled
+        $httpClient = $client->getHttpClient();
+        $reflection = new \ReflectionClass($httpClient);
+        $optionsProperty = $reflection->getProperty('options');
+        $optionsProperty->setAccessible(true);
+        $options = $optionsProperty->getValue($httpClient);
+
+        $this->assertFalse($options->isSessionCachingEnabled(), 'Session caching should be disabled');
+        $this->assertNull($options->getSessionCache(), 'Session cache should be null when disabled');
+    }
 }

@@ -42,6 +42,12 @@ class HttpClient
         $this->apiPassword = $apiPassword;
         $this->apiDatabase = $apiDatabase;
         $this->apiModules = $apiModules;
+
+        // Initialize session cache if enabled
+        if ($this->options->isSessionCachingEnabled()) {
+            $sessionCache = new SessionCache($apiUser, $apiDatabase, $url);
+            $this->options->setSessionCache($sessionCache);
+        }
     }
 
     protected function buildApiUrl($url)
@@ -100,6 +106,14 @@ class HttpClient
             $errorMessage = $parsedBody->Message ?? 'Login failed: PxSessionId not found in response headers.';
             throw new HttpClientException($errorMessage, $httpCode, $this->request, null);
         }
+
+        // Save session to cache if enabled
+        if ($this->options->isSessionCachingEnabled()) {
+            $sessionCache = $this->options->getSessionCache();
+            if ($sessionCache !== null) {
+                $sessionCache->save($this->pxSessionId);
+            }
+        }
     }
 
     protected function logout()
@@ -126,6 +140,14 @@ class HttpClient
         curl_close($ch);
 
         $this->pxSessionId = null;
+
+        // Clear cached session if enabled
+        if ($this->options->isSessionCachingEnabled()) {
+            $sessionCache = $this->options->getSessionCache();
+            if ($sessionCache !== null) {
+                $sessionCache->clear();
+            }
+        }
     }
 
 
@@ -193,6 +215,17 @@ class HttpClient
     protected function lookForErrors($parsedResponse)
     {
         if (!in_array($this->response->getCode(), [200, 201, 202, 204])) {
+            // Clear cached session on 401 Unauthorized
+            if ($this->response->getCode() === 401) {
+                $this->pxSessionId = null;
+                if ($this->options->isSessionCachingEnabled()) {
+                    $sessionCache = $this->options->getSessionCache();
+                    if ($sessionCache !== null) {
+                        $sessionCache->clear();
+                    }
+                }
+            }
+            
             $errorMessage = 'An unknown error occurred';
             if (isset($parsedResponse->Message)) {
                 $errorMessage = $parsedResponse->Message;
@@ -233,7 +266,21 @@ class HttpClient
         $this->createRequest($endpoint, $method, $data, $parameters);
 
         if ($login && empty($this->pxSessionId)) {
-            $this->login();
+            // Try to load cached session first
+            if ($this->options->isSessionCachingEnabled()) {
+                $sessionCache = $this->options->getSessionCache();
+                if ($sessionCache !== null) {
+                    $cachedSession = $sessionCache->load();
+                    if ($cachedSession !== null && !empty($cachedSession)) {
+                        $this->pxSessionId = $cachedSession;
+                    }
+                }
+            }
+
+            // If no cached session, perform login
+            if (empty($this->pxSessionId)) {
+                $this->login();
+            }
         }
 
         // Always set the default settings for the actual request, AFTER a potential login

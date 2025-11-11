@@ -59,15 +59,47 @@ print_r($adressen);
 
 Optionen sind **fakultativ** und werden in der Regel nicht benötigt:
 
-| Option           | Beispiel                               | Bemerkung                                                      |
-|------------------|----------------------------------------|----------------------------------------------------------------|
-| key              | `112a5a90fe28b...`                     | API-Key als SHA256 - Hash (kann auch direkt mitgegeben werden) |
-| version          | `v2`                                   | API-Version; Standard = v2                                     |
-| api_prefix       | `/pxapi/`                              | Prefix für die API; Standard = /pxapi/                         |
-| login_endpoint   | `PRO/Login`                            | Endpunkt für Login; Standard = PRO/Login                       |
-| user_agent       | `php-wrapper-proffix-restapi`          | User Agent; Standard = php-wrapper-proffix-restapi             |
-| timeout          | `15`                                   | Timeout für Curl in Sekunden; Standard = 15                    |
-| follow_redirects | `true`                                 | Weiterleitungen der API folgen; Standard = false               |
+| Option                  | Beispiel                               | Bemerkung                                                      |
+|-------------------------|----------------------------------------|----------------------------------------------------------------|
+| key                     | `112a5a90fe28b...`                     | API-Key als SHA256 - Hash (kann auch direkt mitgegeben werden) |
+| version                 | `v2`                                   | API-Version; Standard = v2                                     |
+| api_prefix              | `/pxapi/`                              | Prefix für die API; Standard = /pxapi/                         |
+| login_endpoint          | `PRO/Login`                            | Endpunkt für Login; Standard = PRO/Login                       |
+| user_agent              | `php-wrapper-proffix-restapi`          | User Agent; Standard = php-wrapper-proffix-restapi             |
+| timeout                 | `15`                                   | Timeout für Curl in Sekunden; Standard = 15                    |
+| follow_redirects        | `true`                                 | Weiterleitungen der API folgen; Standard = false               |
+| enable_session_caching  | `true`                                 | Session-Caching aktivieren; Standard = true                    |
+
+### Session-Caching
+
+Der Wrapper unterstützt automatisches Session-Caching, um die Performance zu verbessern und die Anzahl der Login-Requests zu reduzieren. Das Session-Caching ist standardmässig **aktiviert**.
+
+**Funktionsweise:**
+
+- Nach einem erfolgreichen Login wird die `PxSessionId` in einer Datei gespeichert
+- Bei nachfolgenden Requests wird zuerst versucht, die gespeicherte Session zu laden
+- Bei ungültigen Sessions (401-Fehler) wird automatisch ein neuer Login durchgeführt
+- Sessions werden automatisch beim Logout oder bei Fehlern gelöscht
+
+**Cache-Speicherort:**
+
+- **Windows:** `%APPDATA%/php-wrapper-proffix-restapi/`
+- **Linux/Mac:** `~/.cache/php-wrapper-proffix-restapi/` oder `/tmp/php-wrapper-proffix-restapi/`
+
+Der Dateiname wird aus Benutzername, Datenbank und URL generiert, um Konflikte bei mehreren Clients zu vermeiden.
+
+**Session-Caching deaktivieren:**
+
+```php
+$pxrest = new Client(
+    'https://myserver.ch:999',
+    'DEMO',
+    'USR',
+    'b62cce2fe18f7a156a9c719c57bebf0478a3d50f0d7bd18d9e8a40be2e663017',
+    'ADR,STU',
+    ['enable_session_caching' => false]
+);
+```
 
 ## Methoden
 

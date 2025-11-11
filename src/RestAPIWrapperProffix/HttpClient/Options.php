@@ -38,6 +38,11 @@ class Options
     private $options = [];
 
     /**
+     * @var SessionCache|null
+     */
+    private $sessionCache = null;
+
+    /**
      * Options constructor.
      *
      * @param array $options
@@ -108,5 +113,35 @@ class Options
     public function getFollowRedirects()
     {
         return isset($this->options['follow_redirects']) ? (bool)$this->options['follow_redirects'] : false;
+    }
+
+    /**
+     * Check if session caching is enabled
+     *
+     * @return bool
+     */
+    public function isSessionCachingEnabled()
+    {
+        return isset($this->options['enable_session_caching']) ? (bool)$this->options['enable_session_caching'] : true;
+    }
+
+    /**
+     * Set the session cache instance
+     *
+     * @param SessionCache $sessionCache
+     */
+    public function setSessionCache(SessionCache $sessionCache)
+    {
+        $this->sessionCache = $sessionCache;
+    }
+
+    /**
+     * Get the session cache instance
+     *
+     * @return SessionCache|null
+     */
+    public function getSessionCache()
+    {
+        return $this->sessionCache;
     }
 }
