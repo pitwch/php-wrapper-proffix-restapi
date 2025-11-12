@@ -88,6 +88,17 @@ Der Wrapper unterstützt automatisches Session-Caching, um die Performance zu ve
 
 Der Dateiname wird aus Benutzername, Datenbank und URL generiert, um Konflikte bei mehreren Clients zu vermeiden.
 
+**Technische Details:**
+
+Die Session-Verwaltung erfolgt über die `SessionCache`-Klasse (`src/RestAPIWrapperProffix/HttpClient/SessionCache.php`), die folgende Funktionen bietet:
+
+- `load()`: Lädt eine gespeicherte Session-ID aus dem Cache
+- `save($sessionId)`: Speichert eine Session-ID im Cache
+- `clear()`: Löscht die gespeicherte Session-ID
+- Automatische Erkennung des plattformspezifischen Cache-Verzeichnisses
+- Thread-sichere Dateioperationen mit `LOCK_EX`
+- Kollisionsvermeidung durch Base64-URL-kodierte Dateinamen
+
 **Session-Caching deaktivieren:**
 
 ```php
@@ -201,6 +212,76 @@ $dbInfo = $pxrest->database();
 ## Response / Antwort
 
 Alle Methoden geben die Response als Array bzw. `NULL` (z.B. bei `DELETE`) zurück. Bei Fehlern wird eine `HttpClientException` mit der Rückmeldung der PROFFIX REST-API geworfen.
+
+### Error Handling
+
+Der Wrapper bietet erweitertes Error Handling, das sowohl allgemeine Fehlermeldungen als auch feldspezifische Validierungsfehler erfasst.
+
+#### Beispiel einer PROFFIX API Fehlerantwort
+
+```json
+{
+  "Fields": [
+    {
+      "Reason": "EMPTY",
+      "Name": "PLZ",
+      "Message": "PLZ darf nicht leer bleiben!"
+    },
+    {
+      "Reason": "EMPTY",
+      "Name": "Land",
+      "Message": "Land darf nicht leer bleiben!"
+    }
+  ],
+  "Message": "Mindestens ein Feld ist ungültig."
+}
+```
+
+#### Fehlerbehandlung mit HttpClientException
+
+```php
+use Pitwch\RestAPIWrapperProffix\HttpClient\HttpClientException;
+
+try {
+    $data = ["Ort" => "Zürich", "PLZ" => "", "Land" => ""];
+    $neueAdresse = $pxrest->post("ADR/Adresse", $data);
+} catch (HttpClientException $e) {
+    // Hauptfehlermeldung
+    echo "Fehler: " . $e->getMessage() . "\n";
+    // "Mindestens ein Feld ist ungültig."
+    
+    // Prüfen, ob feldspezifische Fehler vorhanden sind
+    if ($e->hasFieldErrors()) {
+        echo "Feldvalidierungsfehler:\n";
+        
+        foreach ($e->getFieldErrors() as $error) {
+            echo sprintf(
+                "  - %s: %s (Grund: %s)\n",
+                $error['Name'],
+                $error['Message'],
+                $error['Reason']
+            );
+        }
+        
+        // Oder alle Details als formatierte Nachricht
+        echo "\n" . $e->getDetailedMessage();
+    }
+}
+```
+
+**Verfügbare Methoden:**
+
+- `getMessage()`: Gibt die Hauptfehlermeldung zurück
+- `hasFieldErrors()`: Prüft, ob feldspezifische Fehler vorhanden sind
+- `getFieldErrors()`: Gibt ein Array mit allen Feldfehlern zurück
+- `getDetailedMessage()`: Gibt eine formatierte Nachricht mit allen Fehlerdetails zurück
+- `getCode()`: Gibt den HTTP-Statuscode zurück
+- `getRequest()`: Gibt das Request-Objekt zurück
+- `getResponse()`: Gibt das Response-Objekt zurück
+
+Weitere Details und Beispiele finden sich in der [Error Handling Dokumentation](docs/ERROR_HANDLING.md).
+
+### Zusatzinformationen zur Response
 
 Zudem lassen sich Zusatzinformationen zur letzten Response wie folgt ausgeben:
 

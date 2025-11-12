@@ -227,10 +227,25 @@ class HttpClient
             }
             
             $errorMessage = 'An unknown error occurred';
+            $fieldErrors = null;
+            
             if (isset($parsedResponse->Message)) {
                 $errorMessage = $parsedResponse->Message;
             }
-            throw new HttpClientException($errorMessage, $this->response->getCode(), $this->request, $this->response);
+            
+            // Extract field-level validation errors if present
+            if (isset($parsedResponse->Fields) && is_array($parsedResponse->Fields)) {
+                $fieldErrors = [];
+                foreach ($parsedResponse->Fields as $field) {
+                    $fieldErrors[] = [
+                        'Name' => $field->Name ?? null,
+                        'Message' => $field->Message ?? null,
+                        'Reason' => $field->Reason ?? null
+                    ];
+                }
+            }
+            
+            throw new HttpClientException($errorMessage, $this->response->getCode(), $this->request, $this->response, $fieldErrors);
         }
     }
 
