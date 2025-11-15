@@ -45,7 +45,8 @@ class HttpClient
 
         // Initialize session cache if enabled
         if ($this->options->isSessionCachingEnabled()) {
-            $sessionCache = new SessionCache($apiUser, $apiDatabase, $url);
+            $customCacheDir = $this->options->getCacheDir();
+            $sessionCache = new SessionCache($apiUser, $apiDatabase, $url, $customCacheDir);
             $this->options->setSessionCache($sessionCache);
         }
     }

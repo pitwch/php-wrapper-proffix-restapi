@@ -144,4 +144,14 @@ class Options
     {
         return $this->sessionCache;
     }
+
+    /**
+     * Get custom cache directory
+     *
+     * @return string|null
+     */
+    public function getCacheDir(): ?string
+    {
+        return $this->options['cache_dir'] ?? null;
+    }
 }

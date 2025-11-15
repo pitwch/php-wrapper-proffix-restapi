@@ -69,6 +69,7 @@ Optionen sind **fakultativ** und werden in der Regel nicht benötigt:
 | timeout                 | `15`                                   | Timeout für Curl in Sekunden; Standard = 15                    |
 | follow_redirects        | `true`                                 | Weiterleitungen der API folgen; Standard = false               |
 | enable_session_caching  | `true`                                 | Session-Caching aktivieren; Standard = true                    |
+| cache_dir               | `/tmp/proffix-cache`                   | Eigenes Cache-Verzeichnis; Standard = plattformspezifisch      |
 
 ### Session-Caching
 
@@ -83,10 +84,43 @@ Der Wrapper unterstützt automatisches Session-Caching, um die Performance zu ve
 
 **Cache-Speicherort:**
 
+Der Cache-Speicherort kann über die Option `cache_dir` angepasst werden. Dies ist besonders nützlich bei Hosting-Umgebungen mit `open_basedir`-Einschränkungen.
+
+**Standard-Speicherorte** (wenn `cache_dir` nicht angegeben):
+
 - **Windows:** `%APPDATA%/php-wrapper-proffix-restapi/`
 - **Linux/Mac:** `~/.cache/php-wrapper-proffix-restapi/` oder `/tmp/php-wrapper-proffix-restapi/`
 
 Der Dateiname wird aus Benutzername, Datenbank und URL generiert, um Konflikte bei mehreren Clients zu vermeiden.
+
+**Eigenes Cache-Verzeichnis verwenden:**
+
+```php
+$pxrest = new Client(
+    'https://myserver.ch:999',
+    'DEMO',
+    'USR',
+    'b62cce2fe18f7a156a9c719c57bebf0478a3d50f0d7bd18d9e8a40be2e663017',
+    'ADR,STU',
+    [
+        'enable_session_caching' => true,
+        'cache_dir' => '/tmp/proffix-cache'  // Eigenes Verzeichnis
+    ]
+);
+```
+
+**Empfohlene Cache-Verzeichnisse für verschiedene Umgebungen:**
+
+```php
+// Shared Hosting (z.B. Plesk) mit open_basedir-Einschränkungen
+'cache_dir' => '/tmp/proffix-cache'
+
+// Cross-Platform (empfohlen)
+'cache_dir' => sys_get_temp_dir() . '/proffix-cache'
+
+// Innerhalb des Projekts
+'cache_dir' => __DIR__ . '/cache'
+```
 
 **Technische Details:**
 
@@ -95,9 +129,16 @@ Die Session-Verwaltung erfolgt über die `SessionCache`-Klasse (`src/RestAPIWrap
 - `load()`: Lädt eine gespeicherte Session-ID aus dem Cache
 - `save($sessionId)`: Speichert eine Session-ID im Cache
 - `clear()`: Löscht die gespeicherte Session-ID
+- Unterstützung für eigene Cache-Verzeichnisse (Option `cache_dir`)
 - Automatische Erkennung des plattformspezifischen Cache-Verzeichnisses
 - Thread-sichere Dateioperationen mit `LOCK_EX`
 - Kollisionsvermeidung durch Base64-URL-kodierte Dateinamen
+
+**Cache-Verzeichnis-Priorität:**
+
+1. Eigenes Verzeichnis (wenn `cache_dir` Option gesetzt)
+2. Plattformspezifische Standard-Verzeichnisse
+3. Fallback auf `/tmp/` oder `sys_get_temp_dir()`
 
 **Session-Caching deaktivieren:**
 

@@ -5,9 +5,11 @@ namespace Pitwch\RestAPIWrapperProffix\HttpClient;
 /**
  * File-backed cache for storing PxSessionId.
  *
- * Chooses a per-user cache directory:
- * - On Windows: %APPDATA%/php-wrapper-proffix-restapi
- * - On Linux/Mac: ~/.cache/php-wrapper-proffix-restapi or /tmp/php-wrapper-proffix-restapi
+ * Cache directory priority:
+ * 1. Custom directory provided via constructor (if specified)
+ * 2. Platform-specific defaults:
+ *    - On Windows: %APPDATA%/php-wrapper-proffix-restapi
+ *    - On Linux/Mac: ~/.cache/php-wrapper-proffix-restapi or /tmp/php-wrapper-proffix-restapi
  *
  * The filename is derived from username, database, and restURL to avoid collisions
  * when multiple clients are used.
@@ -20,6 +22,7 @@ class SessionCache
     private string $database;
     private string $restURL;
     private ?string $cacheDir = null;
+    private ?string $customCacheDir = null;
 
     /**
      * SessionCache constructor.
@@ -27,12 +30,14 @@ class SessionCache
      * @param string $username
      * @param string $database
      * @param string $restURL
+     * @param string|null $customCacheDir Optional custom cache directory path
      */
-    public function __construct(string $username, string $database, string $restURL)
+    public function __construct(string $username, string $database, string $restURL, ?string $customCacheDir = null)
     {
         $this->username = $username;
         $this->database = $database;
         $this->restURL = $restURL;
+        $this->customCacheDir = $customCacheDir;
     }
 
     /**
@@ -126,6 +131,13 @@ class SessionCache
             return $this->cacheDir;
         }
 
+        // Priority 1: Use custom cache directory if provided
+        if ($this->customCacheDir !== null && !empty($this->customCacheDir)) {
+            $this->cacheDir = rtrim($this->customCacheDir, DIRECTORY_SEPARATOR);
+            return $this->cacheDir;
+        }
+
+        // Priority 2: Use platform-specific defaults
         if (PHP_OS_FAMILY === 'Windows') {
             $appData = getenv('APPDATA');
             if ($appData && !empty($appData)) {
