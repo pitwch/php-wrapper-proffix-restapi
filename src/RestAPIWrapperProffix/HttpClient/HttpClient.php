@@ -61,8 +61,13 @@ class HttpClient
         if (!empty($parameters)) {
             if (array_key_exists('key', $parameters) && empty($parameters['key'])) {
                 $parameters['key'] = $this->options->getApiKey();
+                if (empty($parameters['key'])) {
+                    unset($parameters['key']);
+                }
             }
-            $url .= '?' . http_build_query($parameters);
+            if (!empty($parameters)) {
+                $url .= '?' . http_build_query($parameters);
+            }
         }
         return $url;
     }

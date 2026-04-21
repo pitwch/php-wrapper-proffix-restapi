@@ -1,101 +1,305 @@
 # PHP Wrapper für PROFFIX REST-API
 
-Ein effizienter PHP Wrapper für die PROFFIX REST-API.
+Ein effizienter PHP Wrapper für die PROFFIX REST-API (V4).
 
 ![alt text](https://raw.githubusercontent.com/pitwch/php-wrapper-proffix-restapi/master/php-wrapper-proffix-rest.jpg "PHP Wrapper PROFFIX REST API")
 
+> **Für KI-Assistenten / AI Code Generation:** Dieser Wrapper kapselt die PROFFIX REST-API vollständig. Der Login erfolgt **automatisch** — kein manueller Login-Aufruf nötig. Das `options`-Array ist vollständig **optional** und kann weggelassen oder leer übergeben werden. Passwörter werden als **SHA256-Hash** übergeben.
+
+---
+
 ## Installation
 
-Der Wrapper kann via [Composer](https://getcomposer.org) installiert werden.
-
-```php
+```bash
 composer require pitwch/rest-api-wrapper-proffix-php
 ```
 
-## Konfiguration
+---
 
-### Initialisierung
-
-Autoload der `RestAPIWrapperProffix` Klasse:
-
-```php
-require __DIR__ . '/vendor/autoload.php';
-
-use Pitwch\RestAPIWrapperProffix\Client;
-```
-
-Die Konfiguration wird dem Client mitgegeben:
-
-| Konfiguration    | Beispiel                                                                         | Bemerkung                                        |
-|------------------|----------------------------------------------------------------------------------|--------------------------------------------------|
-| url              | `https://myserver.ch:999`                                                        | URL der REST-API **ohne pxapi/v2/**              |
-| apiDatabase      | `DEMO`                                                                           | Name der Datenbank                               |
-| apiUser          | `USR`                                                                            | Name des Benutzers                               |
-| apiPassword      | `b62cce2fe18f7a156a9c...`                                                        | SHA256-Hash des Benutzerpasswortes               |
-| apiModule        | `ADR,STU`                                                                        | Benötigte Module (mit Komma getrennt)            |
-| options          | `array('key'=>'112a5a90...')`                                                    | Optionen (Details unter Optionen)                |
-
-### Beispiel für die Initialisierung
+## Schnellstart (Minimal-Beispiel)
 
 ```php
 require __DIR__ . '/vendor/autoload.php';
 
 use Pitwch\RestAPIWrapperProffix\Client;
 
+// Minimale Initialisierung — options ist optional und kann weggelassen werden
 $pxrest = new Client(
-    'https://myserver.ch:999',
-    'DEMO',
-    'USR',
-    'b62cce2fe18f7a156a9c719c57bebf0478a3d50f0d7bd18d9e8a40be2e663017',
-    'ADR,STU',
-    ['key'=>'112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028','limit'=>2]
+    'https://myserver.ch:999', // URL ohne /pxapi/V4/
+    'DEMO',                    // Datenbankname
+    'USR',                     // Benutzername
+    'b62cce2fe18f7a156a9c719c57bebf0478a3d50f0d7bd18d9e8a40be2e663017', // SHA256-Passwort
+    'ADR,STU'                  // Benötigte Module (kommagetrennt)
+    // options: weggelassen = alle Defaults aktiv
 );
 
-$adressen = $pxrest->get('ADR/Adresse', ['filter'=>'GeaendertAm>d\'2018-05-17 14:54:56\'', 'depth'=>1, 'fields'=>'AdressNr,Name,GeaendertAm']);
+// Login passiert automatisch beim ersten Request
+$adressen = $pxrest->get('ADR/Adresse', ['limit' => 5]);
 print_r($adressen);
 ```
 
-## Optionen
+---
 
-Optionen sind **fakultativ** und werden in der Regel nicht benötigt:
+## Konstruktor / Initialisierung
 
-| Option                  | Beispiel                               | Bemerkung                                                      |
-|-------------------------|----------------------------------------|----------------------------------------------------------------|
-| key                     | `112a5a90fe28b...`                     | API-Key als SHA256 - Hash (kann auch direkt mitgegeben werden) |
-| version                 | `v2`                                   | API-Version; Standard = v2                                     |
-| api_prefix              | `/pxapi/`                              | Prefix für die API; Standard = /pxapi/                         |
-| login_endpoint          | `PRO/Login`                            | Endpunkt für Login; Standard = PRO/Login                       |
-| user_agent              | `php-wrapper-proffix-restapi`          | User Agent; Standard = php-wrapper-proffix-restapi             |
-| timeout                 | `15`                                   | Timeout für Curl in Sekunden; Standard = 15                    |
-| follow_redirects        | `true`                                 | Weiterleitungen der API folgen; Standard = false               |
-| enable_session_caching  | `true`                                 | Session-Caching aktivieren; Standard = true                    |
-| cache_dir               | `/tmp/proffix-cache`                   | Eigenes Cache-Verzeichnis; Standard = plattformspezifisch      |
+```php
+new Client(string $url, string $apiDatabase, string $apiUser, string $apiPassword, string|array $apiModules, array $options = [])
+```
 
-### Session-Caching
+| Parameter      | Typ              | Pflicht | Beispiel                                       | Bemerkung                                      |
+|----------------|------------------|---------|------------------------------------------------|------------------------------------------------|
+| `$url`         | `string`         | ✅      | `https://myserver.ch:999`                      | URL **ohne** `/pxapi/V4/`                      |
+| `$apiDatabase` | `string`         | ✅      | `DEMO`                                         | Datenbankname                                  |
+| `$apiUser`     | `string`         | ✅      | `USR`                                          | Benutzername                                   |
+| `$apiPassword` | `string`         | ✅      | `b62cce2fe18f7a...`                            | SHA256-Hash des Passworts                      |
+| `$apiModules`  | `string\|array`  | ✅      | `'ADR,STU'` oder `['ADR', 'STU']`              | Benötigte Module                               |
+| `$options`     | `array`          | ❌      | `[]`                                           | Leer oder weggelassen = alle Defaults          |
 
-Der Wrapper unterstützt automatisches Session-Caching, um die Performance zu verbessern und die Anzahl der Login-Requests zu reduzieren. Das Session-Caching ist standardmässig **aktiviert**.
+**Wichtig:** `$options` kann vollständig weggelassen **oder** als leeres Array `[]` übergeben werden — der Client funktioniert in beiden Fällen korrekt.
 
-**Funktionsweise:**
+---
 
-- Nach einem erfolgreichen Login wird die `PxSessionId` in einer Datei gespeichert
-- Bei nachfolgenden Requests wird zuerst versucht, die gespeicherte Session zu laden
-- Bei ungültigen Sessions (401-Fehler) wird automatisch ein neuer Login durchgeführt
-- Sessions werden automatisch beim Logout oder bei Fehlern gelöscht
+## Options-Referenz
 
-**Cache-Speicherort:**
+Alle Optionen sind **fakultativ**. Standardwerte gelten automatisch.
 
-Der Cache-Speicherort kann über die Option `cache_dir` angepasst werden. Dies ist besonders nützlich bei Hosting-Umgebungen mit `open_basedir`-Einschränkungen.
+| Option                 | Typ      | Default                          | Bemerkung                                                         |
+|------------------------|----------|----------------------------------|-------------------------------------------------------------------|
+| `key`                  | `string` | `''`                             | API-Key (SHA256). Nur nötig für `info()`/`database()` Endpunkte   |
+| `version`              | `string` | `'V4'`                           | API-Version                                                       |
+| `api_prefix`           | `string` | `'/pxapi/'`                      | URL-Prefix                                                        |
+| `login_endpoint`       | `string` | `'PRO/Login'`                    | Login-Endpunkt                                                    |
+| `user_agent`           | `string` | `'php-wrapper-proffix-restapi'`  | HTTP User-Agent                                                   |
+| `timeout`              | `int`    | `15`                             | cURL Timeout in Sekunden                                          |
+| `verify_ssl`           | `bool`   | `true`                           | SSL-Zertifikat prüfen                                             |
+| `follow_redirects`     | `bool`   | `false`                          | HTTP-Weiterleitungen folgen                                       |
+| `enable_session_caching` | `bool` | `true`                           | Session-ID zwischenspeichern (reduziert Login-Requests)           |
+| `cache_dir`            | `string` | plattformspezifisch              | Eigenes Cache-Verzeichnis (nützlich bei `open_basedir`)           |
 
-**Standard-Speicherorte** (wenn `cache_dir` nicht angegeben):
+---
+
+## CRUD-Methoden
+
+### GET — Lesen
+
+```php
+// Einzelner Datensatz
+$adresse = $pxrest->get('ADR/Adresse/1');
+echo $adresse->Name; // DEMO AG
+
+// Mit Filtern und Feldselektion
+$adressen = $pxrest->get('ADR/Adresse', [
+    'filter' => 'GeaendertAm>d\'2018-05-17 14:54:56\'',
+    'depth'  => 1,
+    'fields' => 'AdressNr,Name,PLZ,Ort',
+    'limit'  => 5,
+]);
+
+// Filter: enthält "Max" (PROFFIX @= Operator)
+$adressen = $pxrest->get('ADR/Adresse', ['filter' => 'Vorname@="Max"']);
+foreach ($adressen as $adresse) {
+    echo $adresse->Name . ' ' . $adresse->Vorname . "\n";
+}
+```
+
+### POST — Erstellen
+
+```php
+$data = ['Ort' => 'Zürich', 'PLZ' => 8000, 'EMail' => 'test@test.com'];
+$neueAdresse = $pxrest->post('ADR/Adresse', $data);
+```
+
+### PUT — Aktualisieren
+
+```php
+$data = ['AdressNr' => 1, 'Ort' => 'Zürich', 'PLZ' => 8000, 'EMail' => 'test@test.com'];
+$pxrest->put('ADR/Adresse', $data);
+```
+
+### DELETE — Löschen
+
+```php
+$pxrest->delete('ADR/Adresse/42');
+```
+
+---
+
+## Spezielle Methoden
+
+### `getList(int $listenr, array $body = [])` — Liste/PDF generieren
+
+Generiert eine PROFFIX-Liste und gibt den rohen Dateiinhalt zurück.
+
+```php
+$listeNr = 1029; // ListeNr aus PROFFIX
+$pdfResponse = $pxrest->getList($listeNr);
+
+if ($pdfResponse->getCode() === 200) {
+    file_put_contents('Adressliste.pdf', $pdfResponse->getBody());
+}
+```
+
+### `info(string $key = '')` — Server-Info (ohne Lizenz)
+
+```php
+// Mit API-Key direkt
+$info = $pxrest->info('112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028');
+
+// API-Key aus options['key'] verwenden
+$info = $pxrest->info();
+```
+
+### `database(string $key = '')` — Datenbank-Info
+
+```php
+$dbInfo = $pxrest->database();
+```
+
+---
+
+## Sonderfälle
+
+### Leerzeichen in Endpunkten
+
+```php
+// Artikelnummer mit Leerzeichen → rawurlencode() verwenden
+$artikel = 'PC 7';
+$bestand = $pxrest->get('LAG/Artikel/' . rawurlencode($artikel) . '/Bestand');
+```
+
+### Module als Array oder String
+
+```php
+// Beide Varianten sind gleichwertig:
+'ADR,STU'           // String mit Komma
+['ADR', 'STU']      // Array
+```
+
+---
+
+## Session-Caching
+
+Der Wrapper speichert die `PxSessionId` nach dem Login automatisch zwischen. Dadurch entfällt bei wiederholten Script-Aufrufen der Login-Overhead.
+
+**Standard-Speicherorte** (ohne `cache_dir` Option):
 
 - **Windows:** `%APPDATA%/php-wrapper-proffix-restapi/`
 - **Linux/Mac:** `~/.cache/php-wrapper-proffix-restapi/` oder `/tmp/php-wrapper-proffix-restapi/`
 
-Der Dateiname wird aus Benutzername, Datenbank und URL generiert, um Konflikte bei mehreren Clients zu vermeiden.
-
-**Eigenes Cache-Verzeichnis verwenden:**
+### Custom Cache-Verzeichnis (z.B. bei `open_basedir`)
 
 ```php
+// /tmp/ — typisch für Shared-Hosting (Plesk etc.)
+$pxrest = new Client('https://myserver.ch:999', 'DEMO', 'USR', 'sha256hash', 'ADR', [
+    'cache_dir' => '/tmp/proffix-cache',
+]);
+
+// Cross-Platform empfohlen
+$pxrest = new Client('https://myserver.ch:999', 'DEMO', 'USR', 'sha256hash', 'ADR', [
+    'cache_dir' => sys_get_temp_dir() . '/proffix-cache',
+]);
+
+// Innerhalb des Projekts
+$pxrest = new Client('https://myserver.ch:999', 'DEMO', 'USR', 'sha256hash', 'ADR', [
+    'cache_dir' => __DIR__ . '/cache',
+]);
+```
+
+### Session-Caching deaktivieren
+
+```php
+$pxrest = new Client('https://myserver.ch:999', 'DEMO', 'USR', 'sha256hash', 'ADR', [
+    'enable_session_caching' => false,
+]);
+```
+
+**Cache-Verzeichnis-Priorität:**
+
+1. `cache_dir` Option (wenn gesetzt)
+2. Plattformspezifisches Standardverzeichnis
+3. Fallback: `sys_get_temp_dir()`
+
+---
+
+## Fehlerbehandlung
+
+Alle Methoden werfen bei Fehlern eine `HttpClientException`. Diese enthält neben der HTTP-Statuscode auch feldspezifische Validierungsfehler der PROFFIX API.
+
+### Beispiel PROFFIX Fehlerantwort
+
+```json
+{
+  "Fields": [
+    { "Reason": "EMPTY", "Name": "PLZ",  "Message": "PLZ darf nicht leer bleiben!" },
+    { "Reason": "EMPTY", "Name": "Land", "Message": "Land darf nicht leer bleiben!" }
+  ],
+  "Message": "Mindestens ein Feld ist ungültig."
+}
+```
+
+### Exception abfangen
+
+```php
+use Pitwch\RestAPIWrapperProffix\HttpClient\HttpClientException;
+
+try {
+    $neueAdresse = $pxrest->post('ADR/Adresse', ['Ort' => 'Zürich', 'PLZ' => '', 'Land' => '']);
+} catch (HttpClientException $e) {
+    echo $e->getMessage();   // "Mindestens ein Feld ist ungültig."
+    echo $e->getCode();      // HTTP-Statuscode, z.B. 400
+
+    if ($e->hasFieldErrors()) {
+        foreach ($e->getFieldErrors() as $error) {
+            echo sprintf("  - %s: %s (Grund: %s)\n", $error['Name'], $error['Message'], $error['Reason']);
+        }
+        // Oder als formatierte Nachricht:
+        echo $e->getDetailedMessage();
+    }
+}
+```
+
+### Exception-Methoden
+
+| Methode                | Rückgabe  | Beschreibung                                          |
+|------------------------|-----------|-------------------------------------------------------|
+| `getMessage()`         | `string`  | Hauptfehlermeldung                                    |
+| `getCode()`            | `int`     | HTTP-Statuscode                                       |
+| `hasFieldErrors()`     | `bool`    | Prüft ob Feldvalidierungsfehler vorhanden             |
+| `getFieldErrors()`     | `?array`  | Array mit `Name`, `Message`, `Reason` pro Feld        |
+| `getDetailedMessage()` | `string`  | Formatierte Gesamtfehlermeldung inkl. Feldfehler      |
+| `getRequest()`         | `Request` | Request-Objekt                                        |
+| `getResponse()`        | `?Response` | Response-Objekt                                     |
+
+---
+
+## Request / Response Debugging
+
+```php
+// Letzter Request
+$req = $pxrest->getHttpClient()->getRequest();
+$req->getUrl();        // Vollständige URL (string)
+$req->getMethod();     // HTTP-Methode (string)
+$req->getParameters(); // Query-Parameter (array)
+$req->getHeaders();    // HTTP-Header (array)
+$req->getBody();       // Request-Body als JSON (string)
+
+// Letzte Response
+$res = $pxrest->getHttpClient()->getResponse();
+$res->getCode();       // HTTP-Statuscode (int)
+$res->getHeaders();    // Response-Header (array)
+$res->getBody();       // Response-Body als JSON (string)
+```
+
+---
+
+## Vollständiges Beispiel mit allen Optionen
+
+```php
+require __DIR__ . '/vendor/autoload.php';
+
+use Pitwch\RestAPIWrapperProffix\Client;
+use Pitwch\RestAPIWrapperProffix\HttpClient\HttpClientException;
+
 $pxrest = new Client(
     'https://myserver.ch:999',
     'DEMO',
@@ -103,258 +307,61 @@ $pxrest = new Client(
     'b62cce2fe18f7a156a9c719c57bebf0478a3d50f0d7bd18d9e8a40be2e663017',
     'ADR,STU',
     [
+        'key'                    => '112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028',
+        'verify_ssl'             => true,
+        'timeout'                => 15,
         'enable_session_caching' => true,
-        'cache_dir' => '/tmp/proffix-cache'  // Eigenes Verzeichnis
+        'cache_dir'              => sys_get_temp_dir() . '/proffix-cache',
     ]
 );
-```
-
-**Empfohlene Cache-Verzeichnisse für verschiedene Umgebungen:**
-
-```php
-// Shared Hosting (z.B. Plesk) mit open_basedir-Einschränkungen
-'cache_dir' => '/tmp/proffix-cache'
-
-// Cross-Platform (empfohlen)
-'cache_dir' => sys_get_temp_dir() . '/proffix-cache'
-
-// Innerhalb des Projekts
-'cache_dir' => __DIR__ . '/cache'
-```
-
-**Technische Details:**
-
-Die Session-Verwaltung erfolgt über die `SessionCache`-Klasse (`src/RestAPIWrapperProffix/HttpClient/SessionCache.php`), die folgende Funktionen bietet:
-
-- `load()`: Lädt eine gespeicherte Session-ID aus dem Cache
-- `save($sessionId)`: Speichert eine Session-ID im Cache
-- `clear()`: Löscht die gespeicherte Session-ID
-- Unterstützung für eigene Cache-Verzeichnisse (Option `cache_dir`)
-- Automatische Erkennung des plattformspezifischen Cache-Verzeichnisses
-- Thread-sichere Dateioperationen mit `LOCK_EX`
-- Kollisionsvermeidung durch Base64-URL-kodierte Dateinamen
-
-**Cache-Verzeichnis-Priorität:**
-
-1. Eigenes Verzeichnis (wenn `cache_dir` Option gesetzt)
-2. Plattformspezifische Standard-Verzeichnisse
-3. Fallback auf `/tmp/` oder `sys_get_temp_dir()`
-
-**Session-Caching deaktivieren:**
-
-```php
-$pxrest = new Client(
-    'https://myserver.ch:999',
-    'DEMO',
-    'USR',
-    'b62cce2fe18f7a156a9c719c57bebf0478a3d50f0d7bd18d9e8a40be2e663017',
-    'ADR,STU',
-    ['enable_session_caching' => false]
-);
-```
-
-## Methoden
-
-### Allgemeine Methoden (`get`, `put`, `post`, `delete`)
-
-| Parameter  | Typ    | Bemerkung                                                                                                |
-|------------|--------|----------------------------------------------------------------------------------------------------------|
-| endpoint   | `string` | Endpunkt der PROFFIX REST-API; z.B. `ADR/Adresse`, `STU/Rapporte`...                                     |
-| data       | `array`  | Daten (werden automatisch in JSON konvertiert); z.B: `["Name"=>"Demo AG",...]`                           |
-| parameters | `array`  | Parameter gemäss [PROFFIX REST API Docs](http://www.proffix.net/Portals/0/content/REST%20API/index.html) |
-
-*Sonderzeichen in den Parametern müssen gegebenfalls mit Escape-Zeichen verwendet werden, z.B:*
-
-```php
-// Escape ' with \'
-$params = ['filter' => 'GeaendertAm>d\'2018-05-17 14:54:56\'', 'depth' => 1, 'fields' => 'AdressNr,Name,GeaendertAm'];
-$pxrest->get('ADR/Adresse', $params);
-```
-
-#### Get / Query
-
-```php
-// Einfache Abfrage
-$adresse = $pxrest->get("ADR/Adresse/1");
-echo $adresse->Name; // DEMO AG
-
-// Abfrage mit Parametern
-$params = ['filter'=>'GeaendertAm>d\'2018-05-17 14:54:56\'','depth'=>1,'fields'=>'AdressNr,Name,GeaendertAm','limit'=>5];
-$adressen = $pxrest->get("ADR/Adresse", $params);
-```
-
-#### Put / Update
-
-```php
-$data = ["AdressNr"=>1, "Ort"=>"Zürich", "PLZ"=>8000, "EMail"=>"test@test.com"];
-$adresse = $pxrest->put("ADR/Adresse", $data);
-```
-
-#### Post / Create
-
-```php
-$data = ["Ort"=>"Zürich", "PLZ"=>8000, "EMail"=>"test@test.com"];
-$neueAdresse = $pxrest->post("ADR/Adresse", $data);
-```
-
-#### Delete
-
-```php
-$response = $pxrest->delete("ADR/Adresse/42");
-```
-
-### Spezifische Methoden
-
-#### `getList(int $listenr, array $body = [])`
-
-Generiert eine PROFFIX-Liste (z.B. ein PDF) und gibt das Ergebnis als `Response`-Objekt zurück, welches den rohen Dateiinhalt enthält.
-
-| Parameter | Typ      | Bemerkung                                                                                                                                      |
-|-----------|----------|------------------------------------------------------------------------------------------------------------------------------------------------|
-| `$listenr`| `int`    | Die `ListeNr` der Liste, die generiert werden soll.                                                                                            |
-| `$body`   | `array`  | (Optional) Ein assoziatives Array mit Parametern für die Listengenerierung. **Wichtig:** Es muss mindestens ein leeres JSON-Objekt (`{}`) gesendet werden. |
-
-*Beispiel:*
-
-```php
-$listeNr = 1029; // Beispiel-ID für ADR_Adressliste.repx
-$pdfResponse = $pxrest->getList($listeNr);
-
-if ($pdfResponse->getCode() === 200) {
-    file_put_contents('Adressliste.pdf', $pdfResponse->getBody());
-    echo "Liste erfolgreich als Adressliste.pdf gespeichert.";
-}
-```
-
-## Spezielle Endpunkte
-
-### Info
-
-Ruft Infos vom Endpunkt `PRO/Info` ab.
-
-*Hinweis: Dieser Endpunkt / Abfrage blockiert keine Lizenz.*
-
-```php
-// Variante 1: API-Key direkt mitgeben
-$info1 = $pxrest->info('112a5a90fe28b23ed2c776562a7d1043957b5b79fad242b10141254b4de59028');
-  
-// Variante 2: API-Key aus Options verwenden (sofern dort hinterlegt)
-$info2 = $pxrest->info();
-```
-
-### Datenbank
-
-Ruft Infos vom Endpunkt `PRO/Datenbank` ab.
-
-```php
-$dbInfo = $pxrest->database();
-```
-
-## Response / Antwort
-
-Alle Methoden geben die Response als Array bzw. `NULL` (z.B. bei `DELETE`) zurück. Bei Fehlern wird eine `HttpClientException` mit der Rückmeldung der PROFFIX REST-API geworfen.
-
-### Error Handling
-
-Der Wrapper bietet erweitertes Error Handling, das sowohl allgemeine Fehlermeldungen als auch feldspezifische Validierungsfehler erfasst.
-
-#### Beispiel einer PROFFIX API Fehlerantwort
-
-```json
-{
-  "Fields": [
-    {
-      "Reason": "EMPTY",
-      "Name": "PLZ",
-      "Message": "PLZ darf nicht leer bleiben!"
-    },
-    {
-      "Reason": "EMPTY",
-      "Name": "Land",
-      "Message": "Land darf nicht leer bleiben!"
-    }
-  ],
-  "Message": "Mindestens ein Feld ist ungültig."
-}
-```
-
-#### Fehlerbehandlung mit HttpClientException
-
-```php
-use Pitwch\RestAPIWrapperProffix\HttpClient\HttpClientException;
 
 try {
-    $data = ["Ort" => "Zürich", "PLZ" => "", "Land" => ""];
-    $neueAdresse = $pxrest->post("ADR/Adresse", $data);
+    // GET mit Filter
+    $adressen = $pxrest->get('ADR/Adresse', [
+        'filter' => 'GeaendertAm>d\'2018-05-17 14:54:56\'',
+        'fields' => 'AdressNr,Name,PLZ,Ort',
+        'limit'  => 10,
+    ]);
+
+    // POST — neue Adresse erstellen
+    $neueAdresse = $pxrest->post('ADR/Adresse', [
+        'Name' => 'Muster AG',
+        'Ort'  => 'Zürich',
+        'PLZ'  => 8000,
+    ]);
+
+    // PUT — bestehende Adresse aktualisieren
+    $pxrest->put('ADR/Adresse', ['AdressNr' => 1, 'Ort' => 'Bern', 'PLZ' => 3000]);
+
+    // DELETE
+    $pxrest->delete('ADR/Adresse/42');
+
+    // PDF-Liste generieren
+    $pdf = $pxrest->getList(1029);
+    file_put_contents('liste.pdf', $pdf->getBody());
+
 } catch (HttpClientException $e) {
-    // Hauptfehlermeldung
-    echo "Fehler: " . $e->getMessage() . "\n";
-    // "Mindestens ein Feld ist ungültig."
-    
-    // Prüfen, ob feldspezifische Fehler vorhanden sind
-    if ($e->hasFieldErrors()) {
-        echo "Feldvalidierungsfehler:\n";
-        
-        foreach ($e->getFieldErrors() as $error) {
-            echo sprintf(
-                "  - %s: %s (Grund: %s)\n",
-                $error['Name'],
-                $error['Message'],
-                $error['Reason']
-            );
-        }
-        
-        // Oder alle Details als formatierte Nachricht
-        echo "\n" . $e->getDetailedMessage();
-    }
+    echo $e->getDetailedMessage();
 }
 ```
 
-**Verfügbare Methoden:**
-
-- `getMessage()`: Gibt die Hauptfehlermeldung zurück
-- `hasFieldErrors()`: Prüft, ob feldspezifische Fehler vorhanden sind
-- `getFieldErrors()`: Gibt ein Array mit allen Feldfehlern zurück
-- `getDetailedMessage()`: Gibt eine formatierte Nachricht mit allen Fehlerdetails zurück
-- `getCode()`: Gibt den HTTP-Statuscode zurück
-- `getRequest()`: Gibt das Request-Objekt zurück
-- `getResponse()`: Gibt das Response-Objekt zurück
-
-Weitere Details und Beispiele finden sich in der [Error Handling Dokumentation](docs/ERROR_HANDLING.md).
-
-### Zusatzinformationen zur Response
-
-Zudem lassen sich Zusatzinformationen zur letzten Response wie folgt ausgeben:
-
-### Letzter Request
-
-```php
-$lastRequest = $pxrest->http->getRequest();
-$lastRequest->getUrl(); // Get requested URL (string).
-$lastRequest->getMethod(); // Get request method (string).
-$lastRequest->getParameters(); // Get request parameters (array).
-$lastRequest->getHeaders(); // Get request headers (array).
-$lastRequest->getBody(); // Get request body (JSON).
-```
-
-### Letzte Response
-
-```php
-$lastResponse = $pxrest->http->getResponse();
-$lastResponse->getCode(); // Response code (int).
-$lastResponse->getHeaders(); // Response headers (array).
-$lastResponse->getBody(); // Response body (JSON).
-```
-
-## Ausnahmen / Spezialfälle
-
-* Endpunkte, welche Leerschläge enthalten (z.B. `LAG/Artikel/PC 7/Bestand`), müssen mit `rawurlencode()` genutzt werden.
+---
 
 ## Weitere Beispiele
 
-Im Ordner [/examples](https://github.com/pitwch/php-wrapper-proffix-restapi/tree/master/examples) finden sich weitere auskommentierte Beispiele.
+Im Ordner [/examples](https://github.com/pitwch/php-wrapper-proffix-restapi/tree/master/examples) finden sich weitere Beispiele:
+
+- `adresse-read.php` — Einfache GET-Abfrage
+- `adresse-read-filter.php` — GET mit Filtern
+- `adresse-update.php` — POST/PUT
+- `artikel-bestand.php` — rawurlencode für Leerzeichen
+- `error_handling_example.php` — Fehlerbehandlung
+- `session-caching-demo.php` — Session-Caching Performance-Demo
+- `example-custom-cache.php` — Custom Cache-Verzeichnisse
+
+---
 
 ## Weitere Wrapper für die Proffix Rest-API
 
-* [Golang Wrapper für die Proffix Rest-API](https://github.com/pitwch/go-wrapper-proffix-restapi)
-* [Dart Wrapper für die Proffix Rest-API](https://github.com/pitwch/dart_proffix_rest)
+- [Golang Wrapper für die Proffix Rest-API](https://github.com/pitwch/go-wrapper-proffix-restapi)
+- [Dart Wrapper für die Proffix Rest-API](https://github.com/pitwch/dart_proffix_rest)
