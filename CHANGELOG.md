@@ -5,6 +5,22 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/),
 und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## [2.2.1] - 2026-04-21
+
+### Behoben
+
+- **`buildUrlQuery`**: Leerer `key`-Parameter (`key=''`) wird nicht mehr als leerer Query-String (`?key=`) an die URL angehängt. Der Parameter wird entfernt, wenn weder Caller noch `options['key']` einen Wert liefern.
+- Edge-Case: `array('key' => '')` als einziger Parameter erzeugt kein überflüssiges `?` mehr in der URL.
+
+### Geändert
+
+- **README** vollständig überarbeitet und für KI-Assistenten / AI Code Generation optimiert:
+  - AI-Hint-Banner mit den wichtigsten Konzepten (automatischer Login, optionale Options, SHA256-Passwort)
+  - Konstruktor-Signatur als PHP-Typdeklaration
+  - Options-Tabelle mit korrekten Defaults (`V4`, vollständig mit `verify_ssl`)
+  - Korrektur: Request/Response-Debugging-Zugriff via `getHttpClient()` statt `->http`
+  - Alle Beispiele konsolidiert inkl. Custom Cache-Verzeichnis
+
 ## [2.2.0] - 2025-11-15
 
 ### Hinzugefügt
